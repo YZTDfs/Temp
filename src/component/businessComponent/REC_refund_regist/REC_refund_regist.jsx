@@ -37,12 +37,42 @@ export default class REC_refund_regist extends Component {
         this.search=this.search.bind(this);
         this.batchReg=this.batchReg.bind(this);
         this.view=this.view.bind(this);
+<<<<<<< HEAD
+    };
+
+    createAreaList(e){
+      let item=[];
+      e.forEach(x => {
+        item.push(
+          <Option key={x.num} value={x.city_code}>{x.city_code}</Option>
+        )
+      });
+      return item;
+    };
+
+    async getAreaList(){
+      let res=await Utils.axiosRequest({
+        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
+        method:'post',
+        data:{}
+      });
+      if (res.data.code==='0000') {
+         this.setState({
+           areaList:res.data.data
+         });
+      };
+   };
+
+    select(){
+
+=======
         this.batchRegSubmit=this.batchRegSubmit.bind(this);
         this.batchRegCancel=this.batchRegCancel.bind(this);
         this.refundReg=this.refundReg.bind(this);
         this.refundRegSubmit=this.refundRegSubmit.bind(this);
         this.refundRegCancel=this.refundRegCancel.bind(this);
         this.drawerClose=this.drawerClose.bind(this);
+>>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
     };
 
     setTableColumns() { 
@@ -109,6 +139,27 @@ export default class REC_refund_regist extends Component {
     };
     
     async toSelectchange(page,num) {
+<<<<<<< HEAD
+      let res=await Utils.axiosRequest({
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
+        method:'post',
+        data:{
+          page: page,
+      　　pagesize:num
+        }
+      });
+      if (res.data.code==='0000') {
+        this.setState({
+          queryInfo : {
+          　pageSize: num
+      　　　　},                     
+      　　dataSource:{
+      　　　 count: res.data.dataSource.count,
+      　　　 data: res.data.dataSource.data
+      　　　 }
+      　　});
+      }; 
+=======
       let res;
       try {
         res=await Utils.axiosRequest({
@@ -146,6 +197,7 @@ export default class REC_refund_regist extends Component {
            description:'网络异常!'
         });
       };
+>>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
     };
 
     async selectSearch(value){
@@ -209,6 +261,15 @@ export default class REC_refund_regist extends Component {
       });
     };
 
+<<<<<<< HEAD
+    async gotoThispage(current,pagesize){
+      let res=await Utils.axiosRequest({
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
+        method:'post',
+        data:{
+          page:current,
+          pagesize:pagesize
+=======
     refundRegCancel(){
        this.setState({
         refundModal:{
@@ -237,6 +298,7 @@ export default class REC_refund_regist extends Component {
       this.setState({
         batchRegModal:{
           BatchVisible:false
+>>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
         }
       });
     };

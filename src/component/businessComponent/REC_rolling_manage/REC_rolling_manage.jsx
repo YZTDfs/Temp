@@ -99,6 +99,17 @@ export default class REC_rolling_manage extends Component {
       return item;
     };
 
+<<<<<<< HEAD
+    async getAreaList(){
+      let res=await Utils.axiosRequest({
+        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
+        method:'post',
+        data:{}
+      });
+      if (res.data.code==='0000') {
+         this.setState({
+           areaList:res.data.data
+=======
     async initSelectList(e){
       let res,data;
       try {
@@ -107,6 +118,7 @@ export default class REC_rolling_manage extends Component {
            url:Utils.mutilDevURl+'REC_rolling_manage_select',
            method:'post',
            data:{}
+>>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
          });
          switch (res.data.code) {
             case '0000':
@@ -241,7 +253,11 @@ export default class REC_rolling_manage extends Component {
     
     async toSelectchange(page,num) {
       let res=await Utils.axiosRequest({
+<<<<<<< HEAD
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
+=======
         url:Utils.mutilDevURl+'REC_rolling_manage',
+>>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
         method:'post',
         data:{
           page: page,
@@ -428,6 +444,15 @@ export default class REC_rolling_manage extends Component {
 
     };
 
+<<<<<<< HEAD
+    async gotoThispage(current,pagesize){
+      let res=await Utils.axiosRequest({
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
+        method:'post',
+        data:{
+          page:current,
+          pagesize:pagesize
+=======
     async ModalCancel(){
       this.setState({
         Modal:{
@@ -446,6 +471,7 @@ export default class REC_rolling_manage extends Component {
           dealType:value,
           dealReason:dealReason,
           remark:remark
+>>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
         }
       });
     };

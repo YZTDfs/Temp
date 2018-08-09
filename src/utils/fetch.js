@@ -96,5 +96,5 @@ export const arrayRemove=(arr,index)=>{
     return arr;
 };
 
-export const devURL='http://localhost:9777/oss/';
+export const devURL='http://192.168.20.185:9777/oss/';
 export const mutilDevURl='http://192.168.20.185:9777/';

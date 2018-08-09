@@ -46,7 +46,7 @@ export default class SYS_role_manage extends Component {
 
     async getAreaList(){
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_announce_manage_city',
+        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
         method:'post',
         data:{}
       });
@@ -121,7 +121,7 @@ export default class SYS_role_manage extends Component {
     
     async toSelectchange(page,num) {
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_adv_manage',
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
         method:'post',
         data:{
           page: page,
@@ -191,7 +191,7 @@ export default class SYS_role_manage extends Component {
 
     async gotoThispage(current,pagesize){
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_adv_manage',
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
         method:'post',
         data:{
           page:current,

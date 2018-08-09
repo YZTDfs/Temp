@@ -38,7 +38,7 @@ export default class OPS_area_manage extends Component {
 
     async getAreaList(){
        let res=await Utils.axiosRequest({
-         url:'http://localhost:9777/oss/OPS_area_manage_area',
+         url:'http://192.168.20.185:9777/oss/OPS_area_manage_area',
          method:'post',
          data:{}
        });
@@ -118,7 +118,7 @@ export default class OPS_area_manage extends Component {
     
     async toSelectchange(page,num) {
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/OPS_area_manage',
+        url:'http://192.168.20.185:9777/oss/OPS_area_manage',
         method:'post',
         data:{
           page: page,
@@ -185,7 +185,7 @@ export default class OPS_area_manage extends Component {
 
     async gotoThispage(current,pagesize){
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/OPS_area_manage',
+        url:'http://192.168.20.185:9777/oss/OPS_area_manage',
         method:'post',
         data:{
           page:current,

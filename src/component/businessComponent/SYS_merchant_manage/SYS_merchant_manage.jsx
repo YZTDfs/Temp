@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
 import * as Utils from '../../../utils/fetch';
 import * as Class from './SYS_merchant_manage.less';
-import {Table,Select,Input,Button,Icon,DatePicker} from 'antd';
+import {Table,Select,Input,Button,Icon} from 'antd';
 import '../../comDefaultLess/importantCSS.css';
 import {withRouter} from 'react-router-dom';
 import {connect} from 'react-redux';
 
 //const { Column, ColumnGroup } = Table;
 const Option=Select.Option;
-const {RangePicker}=DatePicker;
 export default class SYS_merchant_manage extends Component {
     constructor(props,context){
         super(props,context);
@@ -46,7 +45,7 @@ export default class SYS_merchant_manage extends Component {
 
     async getAreaList(){
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_announce_manage_city',
+        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
         method:'post',
         data:{}
       });
@@ -64,56 +63,48 @@ export default class SYS_merchant_manage extends Component {
     setTableColumns() { 
       this.tableColumns = [
           {
-            title: '终端号', 
+            title: '机构名称', 
             dataIndex: 'terminal_no', 
             key: 'terminal_no',
             width:'10%'
           }, 
           {
-            title: '广告类型',
+            title: '商户号',
             dataIndex: 'type',
             key: 'type',
-            width:'8%'
+            width:'12%'
           }, 
           {
-            title: '素材名称',
+            title: '商户名称',
             dataIndex: 'material',
             key: 'material',
-            width:'23%'
+            width:'24%'
           }, 
           {
-            title: '状态',
+            title: '对账文化',
             dataIndex: 'status',
             key: 'status',
-            width:'10%'
+            width:'12%'
           },
           {
-            title:'提交人',
+            title:'最后操作人',
             dataIndex:'submitter',
             key:'submitter',
-            width:'10%'
+            width:'12%'
           },
           {
-            title:'提交时间',
+            title:'修改时间',
             dataIndex:'modify_time',
             key:'modify_time',
-            width:'11%'
-          },
-          {
-            title:'截止日期',
-            dataIndex:'end_time',
-            key:'end_time',
-            width:'12%'
+            width:'20%'
           },
           {
           title: '操作',
           key: 'operation',
-          width:'15%',
+          width:'10%',
           render: (text, record) => (
           <span className={Class.opt_span}>
-            <Button className={Class.search_btn} type="primary" onClick={this.view}>预览</Button>
             <Button className={Class.search_btn} type="primary" onClick={this.edit}>编辑</Button>
-            <Button className={Class.search_btn} type="danger" onClick={this.delete}>删除</Button>
           </span>
           ),
       }];
@@ -121,7 +112,7 @@ export default class SYS_merchant_manage extends Component {
     
     async toSelectchange(page,num) {
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_adv_manage',
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
         method:'post',
         data:{
           page: page,
@@ -191,7 +182,7 @@ export default class SYS_merchant_manage extends Component {
 
     async gotoThispage(current,pagesize){
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_adv_manage',
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
         method:'post',
         data:{
           page:current,
@@ -224,30 +215,10 @@ export default class SYS_merchant_manage extends Component {
         <article className={Class.main}>
            <nav>
              <div className={Class.eachCol}>
-               <label id={Class.opt_staff_lable} htmlFor={Class.opt_staff}>广告类型</label>
-               <Select id={Class.opt_select} defaultValue='上屏' style={{ width: `10%` }} onChange={self.selectSearch}>
-                 <Option value='all'>上屏</Option>
-                 <Option value='effective'>查询广告</Option>
-                 <Option value='invalid'>办理广告</Option>
-               </Select>
-               <label className={Class.opt_select_lable} htmlFor={Class.opt_select}>状态</label>
-               <Select id={Class.opt_select} defaultValue='全部' style={{ width: `10%` }} onChange={self.selectSearch}>
-                 <Option value='all'>全部</Option>
-                 <Option value='effective'>正常</Option>
-                 <Option value='invalid'>过期</Option>
-               </Select>
+              <Button icon='plus' className={Class.add_btn} type="primary" loading={this.state.addLoading} onClick={this.add}>新增</Button>
+              <label className={Class.opt_select_lable} htmlFor={Class.opt_select}>机构名称</label>
+              <Input id={Class.merchant_code} />
                <Button icon='search' className={Class.search_btn} type="Default" loading={this.state.searchLoading} onClick={this.search}>查询</Button>
-             </div>
-             <div className={`${Class.eachCol} ${Class.marginT1}`}>
-             <label className={Class.opt_select_lable} htmlFor="">终端地区</label>
-             <Select id={Class.opt_select} className={Class.area} mode='multiple' style={{ width: `10%` }} onChange={self.selectSearch}>
-               {this.createAreaList(this.state.areaList)}
-             </Select>
-             <label className={Class.opt_select_lable} htmlFor="">截止时间</label>
-              <RangePicker onChange={self.onChange} />
-             </div>
-             <div className={`${Class.eachCol} ${Class.marginT2}`}>
-               <Button icon='plus' className={Class.add_btn} type="primary" loading={this.state.addLoading} onClick={this.add}>新增</Button>
              </div>
            </nav>
            <div className={Class.table_main}>

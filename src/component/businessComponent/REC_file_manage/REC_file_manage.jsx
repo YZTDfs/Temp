@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import * as Utils from '../../../utils/fetch';
 import * as Class from './REC_file_manage.less';
-import {Table,Select,Input,Button,Icon,DatePicker} from 'antd';
+import { Table, Select, Input, Button, Icon, DatePicker, Modal, notification} from 'antd';
 import '../../comDefaultLess/importantCSS.css';
 import {withRouter} from 'react-router-dom';
 import {connect} from 'react-redux';
@@ -22,16 +22,30 @@ export default class REC_file_manage extends Component {
             　count: 0,
             　data: []
         　　},
-            areaList:[]
+            hintVisible: false,
+            areaList:[],
+            hint:'',
+            modalTitle: '',
+            againVisible: false,
+            creatTime: '',
+            endTime: '',
+            organizationId: '',
+            status: ''
         };
         this.select=this.select.bind(this);
         this.getAreaList=this.getAreaList.bind(this);
         this.toSelectchange=this.toSelectchange.bind(this);
         this.add=this.add.bind(this);
         this.search=this.search.bind(this);
-        this.edit=this.edit.bind(this);
-        this.delete=this.delete.bind(this);
-        this.view=this.view.bind(this);
+        this.download=this.download.bind(this);
+        this.upload=this.upload.bind(this);
+        this.hintClose=this.hintClose.bind(this);
+        this.againClose=this.againClose.bind(this);
+        this.openNotification= this.openNotification.bind(this);
+        this.ticSubmit = this.ticSubmit.bind(this);
+        this.dateChange = this.dateChange.bind(this);
+        this.orzChange = this.orzChange.bind(this);
+        this.statusSearch = this.statusSearch.bind(this);
     };
 
     createAreaList(e){
@@ -46,7 +60,7 @@ export default class REC_file_manage extends Component {
 
     async getAreaList(){
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_announce_manage_city',
+        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
         method:'post',
         data:{}
       });
@@ -64,46 +78,28 @@ export default class REC_file_manage extends Component {
     setTableColumns() { 
       this.tableColumns = [
           {
-            title: '终端号', 
+            title: '对账日期', 
             dataIndex: 'terminal_no', 
             key: 'terminal_no',
             width:'10%'
           }, 
           {
-            title: '广告类型',
+            title: '对账机构',
             dataIndex: 'type',
             key: 'type',
             width:'8%'
           }, 
           {
-            title: '素材名称',
+            title: '获取时间',
             dataIndex: 'material',
             key: 'material',
             width:'23%'
           }, 
           {
-            title: '状态',
+            title: '文件状态',
             dataIndex: 'status',
             key: 'status',
             width:'10%'
-          },
-          {
-            title:'提交人',
-            dataIndex:'submitter',
-            key:'submitter',
-            width:'10%'
-          },
-          {
-            title:'提交时间',
-            dataIndex:'modify_time',
-            key:'modify_time',
-            width:'11%'
-          },
-          {
-            title:'截止日期',
-            dataIndex:'end_time',
-            key:'end_time',
-            width:'12%'
           },
           {
           title: '操作',
@@ -111,9 +107,8 @@ export default class REC_file_manage extends Component {
           width:'15%',
           render: (text, record) => (
           <span className={Class.opt_span}>
-            <Button className={Class.search_btn} type="primary" onClick={this.view}>预览</Button>
-            <Button className={Class.search_btn} type="primary" onClick={this.edit}>编辑</Button>
-            <Button className={Class.search_btn} type="danger" onClick={this.delete}>删除</Button>
+            <Button className={Class.search_btn} type="primary" onClick={this.download}>下载</Button>
+            <Button className={Class.search_btn} type="primary" onClick={this.upload}>上传</Button>
           </span>
           ),
       }];
@@ -121,7 +116,7 @@ export default class REC_file_manage extends Component {
     
     async toSelectchange(page,num) {
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_adv_manage',
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
         method:'post',
         data:{
           page: page,
@@ -141,7 +136,19 @@ export default class REC_file_manage extends Component {
       }; 
     };
 
-    async selectSearch(value){
+    async ticSubmit() {
+      this.openNotification('success',"成功")
+    }
+    async openNotification(type,msg){
+        notification[type]({
+          message: msg
+        });
+    }
+
+    async orzChange(value){
+      this.setState({
+        organizationId: value
+      })
       console.log(value);
     };
 
@@ -167,31 +174,68 @@ export default class REC_file_manage extends Component {
           searchLoading:false
         });
       },2000);
-    };
-
-    async view(text){
-       console.log(text);
-    };
-
-    async edit(){
-      this.setState({
-        editLoading:true
+      let res = await Utils.axiosRequest({
+        url: 'http://192.168.20.185:9777/oss/REC_file_manage',
+        method: 'post',
+        data: {
+          creatTime: this.state.creatTime,
+          endTime: this.state.endTime,
+          organizationId: this.state.organizationId
+        }
       });
-      let self=this;
-      setTimeout(function(){
-        self.setState({
-          editLoading:false
-        });
-      },2000);
+      if (res.data.code === '0000') {
+        this.setState({
+          dataSource: {
+            count: res.data.dataSource.count,
+            data: res.data.dataSource.data
+          }
+        })
+      };
     };
-    
-    async delete(){
 
+    async statusSearch(value){
+      this.setState({
+        status: value
+      })
+    }
+
+    async download(){
+      this.setState({
+        hintVisible: true,
+        hint: '下载失败，你可以手动上传对账文件'
+      })
+    };
+
+    async hintClose(){
+      this.setState({
+        hintVisible: false
+      })
+    };  
+    
+    async upload(){
+      this.setState({
+        modalTitle: "重新下载",
+        againVisible: true,
+        hint: "文件类型或格式有误"
+      })
+    };
+
+    async againClose(){
+      this.setState({
+        againVisible: false
+      });
+    }
+
+    async dateChange(date, dateString) {
+      this.setState({
+        creatTime: dateString[0],
+        endTime: dateString[1]
+      });
     };
 
     async gotoThispage(current,pagesize){
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_adv_manage',
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
         method:'post',
         data:{
           page:current,
@@ -214,41 +258,41 @@ export default class REC_file_manage extends Component {
     this.toSelectchange(1,10);
   };
 
-
   render(){
       let count=this.state.dataSource.count;
       let pageSize=this.state.queryInfo.pageSize;
       let dataSource=this.state.dataSource.data;
+      let { hint, modalTitle, againVisible,hintVisible} = this.state;
       let self=this;
       return(
         <article className={Class.main}>
+          <Modal visible={hintVisible} footer={null} confirmLoading={false} onCancel={self.hintClose} destroyOnClose={true} closable={true} maskClosable={false}
+            className={Class.ticModal} wrapClassName={Class.optModalTree}>
+            {hint}
+          </Modal>
+          <Modal title={modalTitle} visible={againVisible} onOk={self.ticSubmit} onCancel={self.againClose} confirmLoading={false} okText='确认' cancelText='取消' destroyOnClose={true} closable={false} maskClosable={false}
+            className={Class.ticModal} wrapClassName={Class.optModalTree}>
+            {hint}
+          </Modal>
            <nav>
              <div className={Class.eachCol}>
-               <label id={Class.opt_staff_lable} htmlFor={Class.opt_staff}>广告类型</label>
-               <Select id={Class.opt_select} defaultValue='上屏' style={{ width: `10%` }} onChange={self.selectSearch}>
-                 <Option value='all'>上屏</Option>
-                 <Option value='effective'>查询广告</Option>
-                 <Option value='invalid'>办理广告</Option>
-               </Select>
-               <label className={Class.opt_select_lable} htmlFor={Class.opt_select}>状态</label>
-               <Select id={Class.opt_select} defaultValue='全部' style={{ width: `10%` }} onChange={self.selectSearch}>
-                 <Option value='all'>全部</Option>
-                 <Option value='effective'>正常</Option>
-                 <Option value='invalid'>过期</Option>
-               </Select>
-               <Button icon='search' className={Class.search_btn} type="Default" loading={this.state.searchLoading} onClick={this.search}>查询</Button>
+                <label className={Class.opt_select_lable} htmlFor="">对账日期</label>
+                <RangePicker onChange={self.dateChange} />
+
+              <label className={Class.opt_select_lable} htmlFor="">对账机构</label>
+              <Select id={Class.opt_select} style={{ width: `10%` }} onChange={self.orzChange}>
+                {this.createAreaList(this.state.areaList)}
+              </Select>
+
+              <label className={Class.opt_select_lable} htmlFor={Class.opt_select}>文件状态</label>
+              <Select id={Class.opt_select} defaultValue='全部' style={{ width: `10%` }} onChange={self.statusSearch}>
+                <Option value='all'>全部</Option>
+                <Option value='effective'>获取成功</Option>
+                <Option value='invalid'>获取失败</Option>
+              </Select>
+              <Button icon='search' className={Class.search_btn} type="Default" loading={self.state.searchLoading} onClick={self.search}>查询</Button>
              </div>
-             <div className={`${Class.eachCol} ${Class.marginT1}`}>
-             <label className={Class.opt_select_lable} htmlFor="">终端地区</label>
-             <Select id={Class.opt_select} className={Class.area} mode='multiple' style={{ width: `10%` }} onChange={self.selectSearch}>
-               {this.createAreaList(this.state.areaList)}
-             </Select>
-             <label className={Class.opt_select_lable} htmlFor="">截止时间</label>
-              <RangePicker onChange={self.onChange} />
-             </div>
-             <div className={`${Class.eachCol} ${Class.marginT2}`}>
-               <Button icon='plus' className={Class.add_btn} type="primary" loading={this.state.addLoading} onClick={this.add}>新增</Button>
-             </div>
+             
            </nav>
            <div className={Class.table_main}>
               <Table columns={this.tableColumns}

@@ -27,8 +27,13 @@
                 margin-right: 1%;
                 margin-left: 1%;
             }
+            &>#organization_name{
+                width: 20% !important;
+            }
             &>#opt_select{}
             &>.add_btn{
+                margin-left: 1%;
+                margin-right: 38%;
                 min-width: 5%;
                 max-width: 7%;
             }
@@ -50,6 +55,9 @@
     }
 }
 
+#organization{
+    width: 80%;
+}
 .table_main{
     /* margin-top: 5%; */
     height: @mainHeight;
@@ -57,11 +65,20 @@
     /* overflow-y: auto; */
 }
 
+.optModalTree{
+    .flex;
+    /* height: 60%; */
+    align-items: center;
+    justify-content: center;
+}
+.ticModal{
+    width: 30% !important;
+    top:0 !important;
+}
 .opt_span{
     .flex;
     .flex-between;
 }
-
 .stand{
     margin-left: auto !important;
     margin-right: auto !important;
@@ -74,4 +91,8 @@
 .marginT2{
     margin-top: 1%;
     margin-left: 1%;
+}
+
+.marginB2{
+    margin-bottom: 2%;
 }

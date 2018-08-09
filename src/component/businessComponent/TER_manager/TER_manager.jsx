@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import * as Utils from '../../../utils/fetch';
 import * as Class from './TER_manager.less';
-import {Table,Select,Input,Button,Icon,DatePicker} from 'antd';
+import {Table,Select,Input,Button,Icon,DatePicker,notification,Drawer} from 'antd';
 import '../../comDefaultLess/importantCSS.css';
-import {withRouter} from 'react-router-dom';
-import {connect} from 'react-redux';
+
 
 //const { Column, ColumnGroup } = Table;
 const Option=Select.Option;
@@ -22,10 +21,12 @@ export default class TER_manager extends Component {
             　count: 0,
             　data: []
         　　},
-            areaList:[]
+            areaList:[],
+            wayList:[]
         };
         this.select=this.select.bind(this);
         this.getAreaList=this.getAreaList.bind(this);
+        this.getWayList=this.getWayList.bind(this);
         this.toSelectchange=this.toSelectchange.bind(this);
         this.add=this.add.bind(this);
         this.search=this.search.bind(this);
@@ -45,17 +46,66 @@ export default class TER_manager extends Component {
     };
 
     async getAreaList(){
-      let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_announce_manage_city',
-        method:'post',
-        data:{}
-      });
-      if (res.data.code==='0000') {
-         this.setState({
-           areaList:res.data.data
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.mutilDevURl+'TER_manager/way',
+          method:'post',
+          data:{}
+        });
+        if (res.data.code==='0000') {
+          this.setState({
+            areaList:res.data.dataSource
+          });
+        }else if(res.data.code==='0500'){
+           notification['warning']({
+              message:'操作失败',
+              description:'您没有此项操作的权限!'
+           });
+        }else if(res.data.code==='0300'){
+           notification['warning']({
+              message:'接口异常',
+              description:'啊哦，接口出现问题'
+           });
+        };
+      } catch (error) {
+         notification['error']({
+            message:'接口异常',
+            description:'网路异常!'
          });
-      };
-   };
+      }
+    };
+
+    async getWayList(){
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.mutilDevURl+'TER_manager/way',
+          method:'post',
+          data:{}
+        });
+        if (res.data.code==='0000') {
+          this.setState({
+            wayList:res.data.dataSource
+          });
+        }else if(res.data.code==='0500'){
+           notification['warning']({
+              message:'操作失败',
+              description:'您没有此项操作的权限!'
+           });
+        }else if(res.data.code==='0300'){
+           notification['warning']({
+              message:'接口异常',
+              description:'啊哦，接口出现问题'
+           });
+        };
+      } catch (error) {
+         notification['error']({
+            message:'接口异常',
+            description:'网路异常!'
+         });
+      }
+    };
 
     select(){
 
@@ -70,37 +120,37 @@ export default class TER_manager extends Component {
             width:'10%'
           }, 
           {
-            title: '广告类型',
+            title: '自助设备序列号',
             dataIndex: 'type',
             key: 'type',
             width:'8%'
           }, 
           {
-            title: '素材名称',
+            title: '终端地区',
             dataIndex: 'material',
             key: 'material',
             width:'23%'
           }, 
           {
-            title: '状态',
+            title: '终端渠道',
             dataIndex: 'status',
             key: 'status',
             width:'10%'
           },
           {
-            title:'提交人',
+            title:'网点地址',
             dataIndex:'submitter',
             key:'submitter',
             width:'10%'
           },
           {
-            title:'提交时间',
+            title:'终端状态',
             dataIndex:'modify_time',
             key:'modify_time',
             width:'11%'
           },
           {
-            title:'截止日期',
+            title:'修改时间',
             dataIndex:'end_time',
             key:'end_time',
             width:'12%'
@@ -120,25 +170,52 @@ export default class TER_manager extends Component {
     };
     
     async toSelectchange(page,num) {
-      let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_adv_manage',
-        method:'post',
-        data:{
-          page: page,
-      　　pagesize:num
-        }
-      });
-      if (res.data.code==='0000') {
-        this.setState({
-          queryInfo : {
-          　pageSize: num
-      　　　　},                     
-      　　dataSource:{
-      　　　 count: res.data.dataSource.count,
-      　　　 data: res.data.dataSource.data
-      　　　 }
-      　　});
-      }; 
+      console.log('toChange');
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+           url:Utils.mutilDevURl+'TER_manager',
+           method:'post',
+           data:{
+             page:page,
+             pagesize:num
+           }
+        });
+        let {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+               queryInfo : {
+          　     pageSize: num
+      　　　　  },                     
+      　　     dataSource:{
+      　　　     count: dataSource.count,
+      　　　     data: dataSource.data
+      　　　   }
+      　　   });
+            break;
+          
+          case '0500':
+             notification['warning']({
+               message:'操作失败!',
+               description:'您无权进行此项操作'
+             });
+             break;
+          case '0300':
+             notification['warining']({
+                message:'接口异常!',
+                description:'啊哦，接口出现问题'
+             });
+             break;
+          default:
+            break;
+        };
+      } catch (error) {
+            notification['error']({
+                message:'接口异常!',
+                description:'网络异常!'
+            });
+      };
     };
 
     async selectSearch(value){
@@ -190,8 +267,9 @@ export default class TER_manager extends Component {
     };
 
     async gotoThispage(current,pagesize){
+      console.log('goPage');
       let res=await Utils.axiosRequest({
-        url:'http://localhost:9777/oss/CTX_adv_manage',
+        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
         method:'post',
         data:{
           page:current,

@@ -1,0 +1,76 @@
+@import (reference) '~..\..\comDefaultLess\default.less';
+@navHeight:20%;
+@mainHeight:78%;
+
+.main{
+    .flex;
+    .colunm;
+    height: 94%;
+    width: 100%;
+    &>nav{
+        .flex;
+        .colunm;
+        width: 100%;
+        height: @navHeight;
+        margin-top: 1%;
+        &>.eachCol{
+            height: 26%;
+            &>#opt_staff_lable{
+                margin-right: 1%;
+                margin-left: 1%;
+            }
+            &>#opt_staff{
+                width: 10%;
+                height: 94%;
+            }
+            &>.opt_select_lable{
+                margin-right: 1%;
+                margin-left: 1%;
+            }
+            &>#opt_select{}
+            &>.add_btn{
+                min-width: 5%;
+                max-width: 7%;
+            }
+            &>.tel_edit{
+                min-width: 9%;
+                max-width: 9%;
+                margin-left: 1%;
+            }
+            &>.area{
+                width: 47.5% !important;
+            }
+            &>.search_btn{
+                min-width: 5%;
+                max-width: 7%;
+                float: right;
+                margin-right: 2%;
+            }
+        }
+    }
+}
+
+.table_main{
+    /* margin-top: 5%; */
+    height: @mainHeight;
+    width: 100%;
+    /* overflow-y: auto; */
+}
+
+.opt_span{
+    .flex;
+}
+
+.stand{
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.marginT1{
+    margin-top: 1%;
+}
+
+.marginT2{
+    margin-top: 1%;
+    margin-left: 1%;
+}

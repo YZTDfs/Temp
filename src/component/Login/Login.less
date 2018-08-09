@@ -1,0 +1,96 @@
+@import (reference) '~..\comDefaultLess\default.less';
+@width:100%;
+@height:100%;
+@loginIMG_w:100%;
+@loginBox_w:25%;
+@loginBox_anime_w:-25%;
+@input_w:70%;
+@input_h:5%;
+@title_h:35%;
+@ctx_h:65%;
+@errorTips_h:4%;
+@inputBorder_color:#cccccc;
+@btn_color:#45c8dc;
+@btn_h:6%;
+
+.loginBoxExOn(menuExpland,@loginBox_anime_w);
+
+
+.main{
+    width: @width;
+    height: @height;
+    display: flex;
+    &>.loginIMG{
+       width: @loginIMG_w;
+       background-color: black;
+       z-index: 10;
+    };
+    &>.loginBox{
+        z-index: 15;
+        width: @loginBox_w;
+       .animation3rd(menuExpland,1.3s,ease-out);
+       background-color: white;
+       .flex;
+       .colunm;
+       &>.boxTitle{
+         .flex;
+         .colunm;
+         text-align: center;
+         height: @title_h;
+         &>p{
+             font-size: 1.5rem;
+             font-weight: bold;
+             .flex;
+             height: 10%;
+             margin-top: auto;
+             margin-bottom: auto;
+             align-self: center;
+         }
+       };
+       &>.boxContent{
+           .flex;
+           .colunm;
+           .standrad;
+           width: 100%;
+           height: @ctx_h;
+
+           &>.userName{
+              width: @input_w;
+              height: @input_h;
+              .standrad;
+              .radius(3px);
+              .arround(1px,solid,@inputBorder_color);
+              text-indent: 1rem;
+           };
+           
+           &>.userPwd{
+              width: @input_w;
+              height: @input_h;
+              .standrad;
+              .radius(3px);
+              .arround(1px,solid,@inputBorder_color);
+              text-indent: 1rem;
+           };
+
+           &>.errorTips{
+               width: @input_w;
+               height: @errorTips_h;
+               .standrad;
+           }
+
+           &>.loginBtn{
+            width: @input_w;
+            height: @btn_h;
+            background-color: @btn_color;
+            color: white;
+            border:0px;
+            .standrad;
+            .radius(3px);
+        };
+       };
+    };
+}
+
+.errorTips{
+    color:red;
+}

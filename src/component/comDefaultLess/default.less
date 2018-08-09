@@ -1,0 +1,164 @@
+.flex(){
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.colunm(){
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.flex-arounnd(){
+  -ms-flex-pack: distribute;
+  justify-content: space-around;
+}
+
+.flex-between(){
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.flex-center(){
+  -ms-flex-item-align: center;
+  align-self: center;
+}
+
+.pointer(){
+  cursor: pointer;
+}
+
+.standrad(){
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.unSelect(){
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.inlineBlock(){
+  display: inline-block;
+}
+
+.arround(@1px,@solid,@color){
+  border: @1px @solid @color;
+}
+
+.radius(@3px){
+  border-radius: @3px;
+}
+
+.fontSize(){
+
+}
+
+/* -------------------------Animation-Start------------------------------- */
+
+.exMenuOn(@name,@maxHeight){
+  @-webkit-keyframes @name {
+    0%{
+      height: 0;
+    }
+    50%{
+      height: @maxHeight/2;
+    }
+    100%{
+      height: @maxHeight;
+    }
+  }
+  @keyframes @name {
+    0%{
+      height: 0;
+    }
+    50%{
+      height: @maxHeight/2;
+    }
+    100%{
+      height: @maxHeight;
+    }
+  }
+}
+
+.exMenuOff(@name,@maxHeight){
+  @-webkit-keyframes @name {
+    0%{
+      height: @maxHeight;
+    }
+    50%{
+      height: @maxHeight/2;
+    }
+    100%{
+      height: 0;
+    }
+  }
+  @keyframes @name {
+    0%{
+      height: @maxHeight;
+    }
+    50%{
+      height: @maxHeight/2;
+    }
+    100%{
+      height: 0;
+    }
+  }
+}
+
+.loginBoxExOn(@name,@maxWidth){
+  @-webkit-keyframes @name {
+   from{margin-right: @maxWidth}
+   to{margin-right: 0}
+  }
+  @keyframes @name {
+    from{margin-right: @maxWidth}
+    to{margin-right: 0}
+  }
+}
+
+.loginBoxMoveIn(@name,@moveX){
+  @-webkit-keyframes @name {
+    0%{
+      -webkit-transform: translateX(@moveX);
+      transform:translateX(@moveX)
+    }
+    50%{
+      -webkit-transform: translateX(@moveX/2);
+      transform:translateX(@moveX/2)
+    }
+    100%{
+      -webkit-transform: translateX(0);
+      transform:translateX(0)
+    }
+   }
+   @keyframes @name {
+     0%{
+      -webkit-transform: translateX(@moveX);
+      transform:translateX(@moveX)
+     }
+     50%{
+      -webkit-transform: translateX(@moveX/2);
+      transform:translateX(@moveX/2)
+     }
+     100%{
+      -webkit-transform: translateX(0);
+      transform:translateX(0)
+     }
+   }
+}
+
+.animation3rd(@name,@time,@way){
+  -webkit-animation: @name @time @way;
+  animation: @name @time @way;
+}
+.animation4rd(@name,@time,@way){
+  
+}
+/* -------------------------Animation-End--------------------------------- */

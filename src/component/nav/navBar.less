@@ -1,0 +1,28 @@
+@import (reference) '~..\comDefaultLess\default.less';
+
+@height:100%;
+@background_color:#45c8dc;
+@main_div_p_fontSize:2rem;
+
+.main{
+    width: 100%;
+    height: @height;
+    background-color: @background_color;
+    .flex;
+    .flex-between;
+    &>div{
+        .flex;
+        .flex-center;
+        &>img{
+            .flex-center;
+            margin-left: 2.5rem;
+        };
+        &>p{
+            font-size: @main_div_p_fontSize;
+            color: white;
+            font-weight: bold;
+            margin-left: 1.5rem;
+        }
+    }
+    
+};

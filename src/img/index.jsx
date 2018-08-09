@@ -1,0 +1,9 @@
+export { default as logo } from './logo.png';
+export { default as arrow_d } from './arrow_d.png';
+export { default as arrow_r } from './arrow_r.png';
+export { default as bus } from './business.png';
+export { default as rec } from './check.png';
+export { default as ctx } from './content.png';
+export { default as ops } from './operate.png';
+export { default as sys } from './system.png';
+export { default as ter } from './terminal.png';

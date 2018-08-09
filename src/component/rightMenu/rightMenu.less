@@ -1,0 +1,33 @@
+@import (reference) '~..\comDefaultLess\default.less';
+@main_height:100%;
+@nav_height:6%;
+@title_width:10%;
+
+.main{
+    width: 100%;
+    height: @main_height;
+    .flex;
+    .colunm;
+}
+
+.detailsNav{
+    width: 100%;
+    height: @nav_height;
+    .flex;
+}
+
+.defaultTitle{
+    width: @title_width;
+    height: 100%;
+    .inlineBlock;
+    background-color: #dfdfdf;
+    align-self: center;
+    text-align: center;
+    font-size: 1.1rem;
+    line-height: 3rem;
+}
+
+.active{
+    background-color: #fff;
+    color: #3b4966 !important;
+}

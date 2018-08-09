@@ -1,0 +1,70 @@
+@import '~antd/dist/antd.css';
+
+.ant-table-thead > tr > th, .ant-table-tbody > tr > td{
+    text-align: center;
+}
+.noWorp{
+    width: 10%;
+    max-width: 10rem;
+    word-wrap: break-word;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.ant-table-wrapper{
+    height: 100%;
+}
+.ant-spin-container{
+    height: 100%;
+}
+.ant-spin-nested-loading{
+    height: 100%;
+}
+.ant-table{
+    height: 90%;
+}
+.ant-table-content{
+    height: 100%;
+}
+.ant-table-scroll{
+    height: 100%;
+}
+/* .ant-table-header{
+    height: 15%;
+} */
+.ant-pagination{
+    height: 10%;
+    margin: 0 !important;
+}
+/* .ant-table-wrapper{
+    height: 100%;
+}
+.ant-spin-nested-loading{
+    height: 100%;
+}
+.ant-spin-container{
+    height: 100%;
+}
+.ant-table{
+    height: 100%;
+}
+.ant-table-content{
+    height: 100%;
+}
+.ant-table-body{
+    height: 100%;
+}
+.ant-table-body>table{
+    height: 100%;
+}
+.ant-table-thead{
+    height: 15%;
+}
+.ant-table-tbody{
+    height: 85%;
+    overflow-y: auto;
+}
+.ant-pagination{
+    height: 10%;
+} */
+

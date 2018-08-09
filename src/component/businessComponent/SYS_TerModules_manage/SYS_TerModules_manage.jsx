@@ -6,7 +6,7 @@ import '../../comDefaultLess/importantCSS.css';
 import {withRouter} from 'react-router-dom';
 import {connect} from 'react-redux';
 
-//const { Column, ColumnGroup } = Table;
+
 const Option=Select.Option;
 const {RangePicker}=DatePicker;
 export default class SYS_TerModules_manage extends Component {

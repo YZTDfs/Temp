@@ -1,6 +1,8 @@
 @import (reference) '~..\..\comDefaultLess\default.less';
-@navHeight:20%;
+@navHeight:90%;
 @mainHeight:78%;
+.appearShadow(menuApper,5px,4px,#bae7ff);
+.disapperShadow(menuDisapper,5px,4px,#bae7ff);
 
 .main{
     .flex;
@@ -14,20 +16,7 @@
         height: @navHeight;
         margin-top: 1%;
         &>.eachCol{
-            height: 26%;
-            &>#opt_staff_lable{
-                margin-right: 1%;
-                margin-left: 1%;
-            }
-            &>#opt_staff{
-                width: 10%;
-                height: 94%;
-            }
-            &>.opt_select_lable{
-                margin-right: 1%;
-                margin-left: 1%;
-            }
-            &>#opt_select{}
+            height: 10%;
             &>.add_btn{
                 min-width: 5%;
                 max-width: 7%;
@@ -46,15 +35,65 @@
                 float: right;
                 margin-right: 2%;
             }
+            &>.options_btn{
+                min-width: 5%;
+                max-width: 7%;
+                margin-left: 2%;
+            }
+            &>.treeBlock{
+                .inlineBlock;
+                vertical-align: top;
+            }
+        }
+        &>.eachColTreeModules{
+            height: 90%;
+            .flex;
+            &>.leftTree{
+                height: 100%;
+                width: 20%;
+                margin-left: 1%;
+                overflow: auto;
+            }
+            &>.rightDetails{
+                min-height: 100%;
+                width: 70%;
+                .flex;
+                flex-wrap: wrap;
+                overflow-y: auto;
+                &>.eachMenuDetails{
+                    width: 30%;
+                    height: 35%;
+                    padding: 1%;
+                    margin: 1%;
+                    .flex;
+                    .colunm;
+                    .radius(4px);
+                    transition: all 1s;
+                    &>.eachRow{
+                        width: 100%;
+                        margin-top: 3%;
+                        &>.generalLabel{
+                            .inlineBlock;
+                            width: 25% !important;
+                        }
+                        &>.generalInput{
+                            width: 75% !important;
+                        }
+                    }
+                    &>.submit_btn{
+                        margin-top: 3%;
+                        width: 100%;
+                        height: 18%;
+                        background-color:#bae7ff;
+                        .arround(1px,solid,#bae7ff);
+                    }
+                }
+                &>.eachMenuDetails:hover{
+                    .shadow4rth(0px,0px,5px,4px,#dedede);
+                }
+            }
         }
     }
-}
-
-.table_main{
-    /* margin-top: 5%; */
-    height: @mainHeight;
-    width: 100%;
-    /* overflow-y: auto; */
 }
 
 .opt_span{

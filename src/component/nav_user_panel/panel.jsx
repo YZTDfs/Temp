@@ -16,7 +16,7 @@ class Panel extends Component {
   async exitSystem(){
     
     let res=await Utils.axiosRequest({
-      url:'http://192.168.20.54:8080/oss/user/logout',
+      url:Utils.prodURL+'oss/user/logout',
       method:'post',
       data:{}
     });

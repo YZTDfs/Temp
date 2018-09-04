@@ -99,7 +99,7 @@ export default class OPS_ops_manage extends Component {
     
     async toSelectchange(page,num) {
       let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/OPS_ops_manage',
+        url:'http://localhost:9777/oss/OPS_ops_manage',
         method:'post',
         data:{
           page: page,
@@ -166,7 +166,7 @@ export default class OPS_ops_manage extends Component {
 
     async gotoThispage(current,pagesize){
       let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/OPS_ops_manage',
+        url:'http://localhost:9777/oss/OPS_ops_manage',
         method:'post',
         data:{
           page:current,

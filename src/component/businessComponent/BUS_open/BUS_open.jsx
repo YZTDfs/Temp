@@ -58,7 +58,7 @@ export default class BUS_open extends Component {
     
     async toSelectchange(page,num) {
       let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/getTableData',
+        url:'http://localhost:9777/oss/getTableData',
         method:'post',
         data:{
           page: page,
@@ -80,7 +80,7 @@ export default class BUS_open extends Component {
 
     async gotoThispage(current,pagesize){
       let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/getTableData',
+        url:'http://localhost:9777/oss/getTableData',
         method:'post',
         data:{
           page:current,

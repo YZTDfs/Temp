@@ -51,7 +51,7 @@ export default class CTX_announce_manage extends Component {
 
     async getAreaList(){
       let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
+        url:'http://localhost:9777/oss/CTX_announce_manage_city',
         method:'post',
         data:{}
       });
@@ -127,7 +127,7 @@ export default class CTX_announce_manage extends Component {
     
     async toSelectchange(page,num) {
       let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_announce_manage',
+        url:'http://localhost:9777/oss/CTX_announce_manage',
         method:'post',
         data:{
           page: page,
@@ -197,7 +197,7 @@ export default class CTX_announce_manage extends Component {
 
     async gotoThispage(current,pagesize){
       let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_announce_manage',
+        url:'http://localhost:9777/oss/CTX_announce_manage',
         method:'post',
         data:{
           page:current,

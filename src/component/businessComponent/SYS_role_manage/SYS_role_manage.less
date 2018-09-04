@@ -15,19 +15,15 @@
         margin-top: 1%;
         &>.eachCol{
             height: 26%;
-            &>#opt_staff_lable{
-                margin-right: 1%;
+            &>.generalLabel{
                 margin-left: 1%;
-            }
-            &>#opt_staff{
-                width: 10%;
-                height: 94%;
-            }
-            &>.opt_select_lable{
                 margin-right: 1%;
-                margin-left: 1%;
+                .inlineBlock();
+                min-width: 5%;
             }
-            &>#opt_select{}
+            &>.generalInput{
+                width: 15% !important;
+            }
             &>.add_btn{
                 min-width: 5%;
                 max-width: 7%;
@@ -75,3 +71,40 @@
     margin-top: 1%;
     margin-left: 1%;
 }
+.optModalTree{
+    .flex;
+    /* height: 60%; */
+    align-items: center;
+    justify-content: center;
+}
+.optModal{
+    width: 35% !important;
+    top:0 !important;
+ }
+ .modalMain{
+     width: 90% !important;
+     .standrad;
+     &>.eachCol{
+         margin-bottom: 1.5%;
+         &>.generalLabel{
+             margin-right: 1%;
+             width: 15% ;
+             display: inline-block;
+             margin-left: 1%;
+         }
+         &>.generalInput{
+             width: 33%;
+         }
+         &>.generaSelect{
+             width: 33%;
+         }
+         &>.generalTreeLable{
+             .generalLabel;
+             margin-top: 1.5%;
+         }
+         &>.treeBlock{
+             display: inline-block;
+             vertical-align: top;
+         }
+     }
+ }

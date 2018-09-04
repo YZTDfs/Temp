@@ -8,7 +8,7 @@ import {rightMenuReducer} from '../component/rightMenu/rightMenuReducer';
 
 import {persistStore, persistReducer} from 'redux-persist';
 import storageSession from 'redux-persist/lib/storage/session';
-import autoMergeLevel1 from 'redux-persist/lib/stateReconciler/autoMergeLevel1';
+/* import autoMergeLevel1 from 'redux-persist/lib/stateReconciler/autoMergeLevel1'; */
 
 const persistConfig = {
     key: 'root',
@@ -24,7 +24,8 @@ let reducer=combineReducers({
 });
 
 let perReducer=persistReducer(persistConfig,reducer);
-export let store = createStore(perReducer,window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),applyMiddleware(thunk));
+export let store = createStore(perReducer,applyMiddleware(thunk));
+/* export let store = createStore(perReducer,window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),applyMiddleware(thunk)); */
 export let persistor = persistStore(store);
 /* const store=createStore(
     reducer,

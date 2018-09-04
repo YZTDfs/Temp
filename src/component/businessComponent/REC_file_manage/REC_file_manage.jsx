@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
 import * as Utils from '../../../utils/fetch';
 import * as Class from './REC_file_manage.less';
-import { Table, Select, Input, Button, Icon, DatePicker, Modal, notification} from 'antd';
+import {Table,Select,Input,Button,Icon,DatePicker,notification,Modal} from 'antd';
 import '../../comDefaultLess/importantCSS.css';
-import {withRouter} from 'react-router-dom';
-import {connect} from 'react-redux';
 
-//const { Column, ColumnGroup } = Table;
 const Option=Select.Option;
 const {RangePicker}=DatePicker;
+const confirm=Modal.confirm;
 export default class REC_file_manage extends Component {
     constructor(props,context){
         super(props,context);
@@ -22,30 +20,15 @@ export default class REC_file_manage extends Component {
             　count: 0,
             　data: []
         　　},
-            hintVisible: false,
-            areaList:[],
-            hint:'',
-            modalTitle: '',
-            againVisible: false,
-            creatTime: '',
-            endTime: '',
-            organizationId: '',
-            status: ''
+            areaList:[]
         };
-        this.select=this.select.bind(this);
         this.getAreaList=this.getAreaList.bind(this);
         this.toSelectchange=this.toSelectchange.bind(this);
         this.add=this.add.bind(this);
         this.search=this.search.bind(this);
-        this.download=this.download.bind(this);
-        this.upload=this.upload.bind(this);
-        this.hintClose=this.hintClose.bind(this);
-        this.againClose=this.againClose.bind(this);
-        this.openNotification= this.openNotification.bind(this);
-        this.ticSubmit = this.ticSubmit.bind(this);
-        this.dateChange = this.dateChange.bind(this);
-        this.orzChange = this.orzChange.bind(this);
-        this.statusSearch = this.statusSearch.bind(this);
+        this.edit=this.edit.bind(this);
+        this.delete=this.delete.bind(this);
+        this.view=this.view.bind(this);
     };
 
     createAreaList(e){
@@ -60,7 +43,7 @@ export default class REC_file_manage extends Component {
 
     async getAreaList(){
       let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
+        url:'http://localhost:9777/oss/CTX_announce_manage_city',
         method:'post',
         data:{}
       });
@@ -71,84 +54,162 @@ export default class REC_file_manage extends Component {
       };
    };
 
-    select(){
-
-    };
-
-    setTableColumns() { 
+    /* table */
+    setTableColumns() {
       this.tableColumns = [
           {
             title: '对账日期', 
-            dataIndex: 'terminal_no', 
-            key: 'terminal_no',
-            width:'10%'
+            dataIndex: 'rec_time', 
+            key: 'rec_time',
+            width:'18%'
           }, 
           {
             title: '对账机构',
-            dataIndex: 'type',
-            key: 'type',
-            width:'8%'
+            dataIndex: 'rec_org',
+            key: 'rec_org',
+            width:'18%'
           }, 
           {
             title: '获取时间',
-            dataIndex: 'material',
-            key: 'material',
+            dataIndex: 'acp_time',
+            key: 'acp_time',
             width:'23%'
           }, 
           {
             title: '文件状态',
-            dataIndex: 'status',
-            key: 'status',
-            width:'10%'
+            dataIndex: 'file_status',
+            key: 'file_status',
+            width:'18%'
           },
           {
           title: '操作',
           key: 'operation',
-          width:'15%',
-          render: (text, record) => (
-          <span className={Class.opt_span}>
-            <Button className={Class.search_btn} type="primary" onClick={this.download}>下载</Button>
-            <Button className={Class.search_btn} type="primary" onClick={this.upload}>上传</Button>
-          </span>
-          ),
+          width:'22%',
+          render: (text, record) =>{
+            return this.renderButton(record);
+          } 
       }];
     };
     
     async toSelectchange(page,num) {
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
-        method:'post',
-        data:{
-          page: page,
-      　　pagesize:num
-        }
-      });
-      if (res.data.code==='0000') {
-        this.setState({
-          queryInfo : {
-          　pageSize: num
-      　　　　},                     
-      　　dataSource:{
-      　　　 count: res.data.dataSource.count,
-      　　　 data: res.data.dataSource.data
-      　　　 }
-      　　});
-      }; 
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          /* url:'http://192.168.20.111:8080/responseCode/list', */
+          url:Utils.mutilDevURl+'SYS_file_manage',
+          method:'post',
+          data:{
+            pageNum:page,
+            pageSize:num
+          }
+        });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              queryInfo:{
+                pageSize:num
+              },
+              dataSource:{
+                count: dataSource.count,
+                data: dataSource.data
+              }
+            });
+            break;
+          case '0300':
+            notification['warning']({
+              message:'接口异常!',
+              description:'啊哦，接口出现异常!'
+            });
+            break;
+          case '0500':
+            notification['warning']({
+               message:'操作失败!',
+               description:'您无权进行此项操作!'
+            });
+            break;
+          default:
+            break;
+        };
+      } catch (error) {
+        notification['error']({
+          message:'接口异常!',
+          description:'网络异常!'
+        });
+      };
     };
 
-    async ticSubmit() {
-      this.openNotification('success',"成功")
-    }
-    async openNotification(type,msg){
-        notification[type]({
-          message: msg
+    async gotoThispage(current,pagesize){
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          /* url:'http://192.168.20.111:8080/responseCode/list', */
+          url:Utils.mutilDevURl+'SYS_file_manage',
+          method:'post',
+          data:{
+            pageNum:current,
+            pageSize:pagesize
+          }
         });
-    }
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              queryInfo:{
+                pageSize:pagesize
+              },
+              dataSource:{
+                count: dataSource.count,
+                data: dataSource.data
+              }
+            });
+            break;
+          case '0300':
+            notification['warning']({
+              message:'接口异常!',
+              description:'啊哦，接口出现异常!'
+            });
+            break;
+          case '0500':
+            notification['warning']({
+               message:'操作失败!',
+               description:'您无权进行此项操作!'
+            });
+            break;
+          default:
+            break;
+        };
+      } catch (error) {
+        notification['error']({
+          message:'接口异常!',
+          description:'网络异常!'
+        });
+      };
+    };
+    /* end */
 
-    async orzChange(value){
-      this.setState({
-        organizationId: value
-      })
+    /* render table button */
+    renderButton(record){
+         if (record.file_status==='获取成功') {
+           return(
+            <span className={Class.opt_span}>
+              <Button className={Class.search_btn} onClick={this.download.bind(this,record)} type='defalut'>下载</Button>
+              <Button className={Class.search_btn} onClick={this.upload.bind(this,record)} type='defalut'>上传</Button>
+            </span>
+           )
+         }else{
+           return(
+             <span className={Class.opt_span}>
+              <Button className={Class.search_btn} onClick={this.re_download.bind(this,record)} type='defalut'>重新下载</Button>
+              <Button className={Class.search_btn} onClick={this.re_upload.bind(this,record)} type='defalut'>重新上传</Button>
+              <Button className={Class.search_btn} onClick={this.re_rec.bind(this,record)} type='defalut'>重新对账</Button>
+            </span>
+           )
+         }
+    };
+    /* end */
+
+    async selectSearch(value){
       console.log(value);
     };
 
@@ -174,83 +235,85 @@ export default class REC_file_manage extends Component {
           searchLoading:false
         });
       },2000);
-      let res = await Utils.axiosRequest({
-        url: 'http://192.168.20.185:9777/oss/REC_file_manage',
-        method: 'post',
-        data: {
-          creatTime: this.state.creatTime,
-          endTime: this.state.endTime,
-          organizationId: this.state.organizationId
-        }
+    };
+
+    async view(text){
+       console.log(text);
+    };
+
+    async edit(){
+      this.setState({
+        editLoading:true
       });
-      if (res.data.code === '0000') {
-        this.setState({
-          dataSource: {
-            count: res.data.dataSource.count,
-            data: res.data.dataSource.data
-          }
-        })
-      };
+      let self=this;
+      setTimeout(function(){
+        self.setState({
+          editLoading:false
+        });
+      },2000);
     };
-
-    async statusSearch(value){
-      this.setState({
-        status: value
-      })
-    }
-
-    async download(){
-      this.setState({
-        hintVisible: true,
-        hint: '下载失败，你可以手动上传对账文件'
-      })
-    };
-
-    async hintClose(){
-      this.setState({
-        hintVisible: false
-      })
-    };  
     
-    async upload(){
-      this.setState({
-        modalTitle: "重新下载",
-        againVisible: true,
-        hint: "文件类型或格式有误"
-      })
+    async delete(){
+
     };
-
-    async againClose(){
-      this.setState({
-        againVisible: false
-      });
-    }
-
-    async dateChange(date, dateString) {
-      this.setState({
-        creatTime: dateString[0],
-        endTime: dateString[1]
+    
+    /* bussiness */
+    async download(record){
+      console.log(record);
+    };
+    async upload(record){
+      console.log(record);
+    };
+    async re_download(record){
+      confirm({
+        title: '重新下载?',
+        content: '该操作会覆盖已完成对账的文件，是否确认继续?',
+        okText:'确定',
+        cancelText:'取消',
+        onOk() {
+          console.log('OK',record);
+        },
+        onCancel() {
+          console.log('Cancel');
+        },
       });
     };
-
-    async gotoThispage(current,pagesize){
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
-        method:'post',
-        data:{
-          page:current,
-          pagesize:pagesize
+    async re_upload(record){
+      confirm({
+        title:'重新上传?',
+        content:'该操作会覆盖已完成对账的文件，是否确认继续?',
+        okText:'确定',
+        cancelText:'取消',
+        onOk(){
+          console.log('OK',record);
+        },
+        onCancel(){
+          console.log('cancel');
         }
       });
-      if (res.data.code==='0000') {
-        this.setState({
-          dataSource:{
-            count:res.data.dataSource.count,
-            data:res.data.dataSource.data
-          }
-        })
-      };
     };
+    async re_rec(record){
+      confirm({
+        title:'重新对账?',
+        content:'是否确认重新对账?',
+        onOk(){
+          console.log('ok',record);
+        },
+        onCancel(){
+          console.log('cancel');
+        }
+      });
+    };
+    /* end */
+
+    /* confirm */
+    async checkFileStatus(record){
+      /* TODO:judge record file status */
+      /* end */
+    };
+    /* end */
+    
+    
 
   componentWillMount(){
     this.setTableColumns();
@@ -258,37 +321,30 @@ export default class REC_file_manage extends Component {
     this.toSelectchange(1,10);
   };
 
+
   render(){
       let count=this.state.dataSource.count;
       let pageSize=this.state.queryInfo.pageSize;
       let dataSource=this.state.dataSource.data;
-      let { hint, modalTitle, againVisible,hintVisible} = this.state;
+      let { hint, modalTitle, againVisible,hintVisible,recVisible} = this.state;
       let self=this;
       return(
         <article className={Class.main}>
-          <Modal visible={hintVisible} footer={null} confirmLoading={false} onCancel={self.hintClose} destroyOnClose={true} closable={true} maskClosable={false}
-            className={Class.ticModal} wrapClassName={Class.optModalTree}>
-            {hint}
-          </Modal>
-          <Modal title={modalTitle} visible={againVisible} onOk={self.ticSubmit} onCancel={self.againClose} confirmLoading={false} okText='确认' cancelText='取消' destroyOnClose={true} closable={false} maskClosable={false}
-            className={Class.ticModal} wrapClassName={Class.optModalTree}>
-            {hint}
-          </Modal>
            <nav>
              <div className={Class.eachCol}>
-                <label className={Class.opt_select_lable} htmlFor="">对账日期</label>
-                <RangePicker onChange={self.dateChange} />
+              <label className={Class.generalLabel} htmlFor=''>对账日期</label>
+              <DatePicker className={Class.generalInput} onChange={self.dateChange} />
 
-              <label className={Class.opt_select_lable} htmlFor="">对账机构</label>
-              <Select id={Class.opt_select} style={{ width: `10%` }} onChange={self.orzChange}>
+              <label className={Class.generalLabel} htmlFor=''>对账机构</label>
+              <Select className={Class.generalInput} style={{ width: `10%` }} onChange={self.orzChange}>
                 {this.createAreaList(this.state.areaList)}
               </Select>
 
-              <label className={Class.opt_select_lable} htmlFor={Class.opt_select}>文件状态</label>
-              <Select id={Class.opt_select} defaultValue='全部' style={{ width: `10%` }} onChange={self.statusSearch}>
-                <Option value='all'>全部</Option>
-                <Option value='effective'>获取成功</Option>
-                <Option value='invalid'>获取失败</Option>
+              <label className={Class.generalLabel} htmlFor=''>文件状态</label>
+              <Select className={Class.generalInput} defaultValue='全部' style={{ width: `10%` }} onChange={self.statusSearch}>
+                <Option key='all' value='all'>全部</Option>
+                <Option key='recSuccess' value='effective'>获取成功</Option>
+                <Option key='recFailed' value='invalid'>获取失败</Option>
               </Select>
               <Button icon='search' className={Class.search_btn} type="Default" loading={self.state.searchLoading} onClick={self.search}>查询</Button>
              </div>
@@ -296,7 +352,7 @@ export default class REC_file_manage extends Component {
            </nav>
            <div className={Class.table_main}>
               <Table columns={this.tableColumns}
-                     rowKey='terminal_no'
+                     rowKey='id'
                      dataSource={dataSource}
                      pagination={{
                      total: count,
@@ -321,13 +377,6 @@ export default class REC_file_manage extends Component {
     }
 };
 
-/* const mapStateToProps = (state) => ({
-  dataArr:state.rightMenu.dataArr
-});
-
-export default withRouter(connect(
-  mapStateToProps
-)(BUS_open)) */
 
 
 

@@ -1,289 +1,322 @@
 import React, { Component } from 'react';
 import * as Utils from '../../../utils/fetch';
 import * as Class from './SYS_menu_manage.less';
-import {Table,Select,Input,Button,Icon,DatePicker} from 'antd';
+import {Select,Input,Button,Icon,notification,Tree} from 'antd';
 import '../../comDefaultLess/importantCSS.css';
-import {withRouter} from 'react-router-dom';
-import {connect} from 'react-redux';
+import _ from 'lodash'
 
-//const { Column, ColumnGroup } = Table;
 const Option=Select.Option;
-const {RangePicker}=DatePicker;
+const TreeNode = Tree.TreeNode;
+const DirectoryTree = Tree.DirectoryTree;
 export default class SYS_menu_manage extends Component {
     constructor(props,context){
         super(props,context);
         this.state={
             addLoading:false,
             searchLoading:false,
-            queryInfo : {
-            　pageSize: 10
-            },     
-            dataSource:{
-            　count: 0,
-            　data: []
-        　　},
-            areaList:[]
+            treeData:[],
+            treeInfo:'',
+            selectedKeys:[],
+            submitData:{
+              level:{key:'1'},
+              name:'',
+              url:'',
+              sort:''
+            },
+            treeSelectInfo:[]
         };
-        this.select=this.select.bind(this);
-        this.getAreaList=this.getAreaList.bind(this);
-        this.toSelectchange=this.toSelectchange.bind(this);
         this.add=this.add.bind(this);
-        this.search=this.search.bind(this);
         this.edit=this.edit.bind(this);
         this.delete=this.delete.bind(this);
-        this.view=this.view.bind(this);
+        this.onExpand=this.onExpand.bind(this);
+        this.onSelect=this.onSelect.bind(this);
+        this.renderTree=this.renderTree.bind(this);
+        this.renderTreeNodes=this.renderTreeNodes.bind(this);
+        this.levelSelect=this.levelSelect.bind(this);
+        this.menuName=this.menuName.bind(this);
+        this.menuUrl=this.menuUrl.bind(this);
+        this.menuSort=this.menuSort.bind(this);
+        this.renderEachMenu=this.renderEachMenu.bind(this);
     };
 
-    createAreaList(e){
-      let item=[];
-      e.forEach(x => {
-        item.push(
-          <Option key={x.num} value={x.city_code}>{x.city_code}</Option>
-        )
-      });
-      return item;
-    };
-
-    async getAreaList(){
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
-        method:'post',
-        data:{}
-      });
-      if (res.data.code==='0000') {
-         this.setState({
-           areaList:res.data.data
+    async getTreeData(){
+       let res;
+       try {
+         res=await Utils.axiosRequest({
+            url:Utils.mutilDevURl+'SYS_menu_manage/tree',
+            method:'post',
+            data:{}
          });
-      };
-   };
-
-    select(){
-
-    };
-
-    setTableColumns() { 
-      this.tableColumns = [
-          {
-            title: '终端号', 
-            dataIndex: 'terminal_no', 
-            key: 'terminal_no',
-            width:'10%'
-          }, 
-          {
-            title: '广告类型',
-            dataIndex: 'type',
-            key: 'type',
-            width:'8%'
-          }, 
-          {
-            title: '素材名称',
-            dataIndex: 'material',
-            key: 'material',
-            width:'23%'
-          }, 
-          {
-            title: '状态',
-            dataIndex: 'status',
-            key: 'status',
-            width:'10%'
-          },
-          {
-            title:'提交人',
-            dataIndex:'submitter',
-            key:'submitter',
-            width:'10%'
-          },
-          {
-            title:'提交时间',
-            dataIndex:'modify_time',
-            key:'modify_time',
-            width:'11%'
-          },
-          {
-            title:'截止日期',
-            dataIndex:'end_time',
-            key:'end_time',
-            width:'12%'
-          },
-          {
-          title: '操作',
-          key: 'operation',
-          width:'15%',
-          render: (text, record) => (
-          <span className={Class.opt_span}>
-            <Button className={Class.search_btn} type="primary" onClick={this.view}>预览</Button>
-            <Button className={Class.search_btn} type="primary" onClick={this.edit}>编辑</Button>
-            <Button className={Class.search_btn} type="danger" onClick={this.delete}>删除</Button>
-          </span>
-          ),
-      }];
-    };
-    
-    async toSelectchange(page,num) {
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
-        method:'post',
-        data:{
-          page: page,
-      　　pagesize:num
-        }
-      });
-      if (res.data.code==='0000') {
-        this.setState({
-          queryInfo : {
-          　pageSize: num
-      　　　　},                     
-      　　dataSource:{
-      　　　 count: res.data.dataSource.count,
-      　　　 data: res.data.dataSource.data
-      　　　 }
-      　　});
-      }; 
-    };
-
-    async selectSearch(value){
-      console.log(value);
+         const {code,dataSource}=res.data;
+         switch (code) {
+           case '0000':
+             this.setState({
+               treeData:dataSource.data
+             });
+             break;
+           case '0500':
+             notification['warning']({
+                message:'操作失败!',
+                description:'您无权进行此项操作!'
+             });
+             break;
+           case '0300':
+             notification['warning']({
+                message:'接口异常!',
+                description:'啊哦，接口出现问题!'
+             });
+             break;
+           default:
+             break;
+         }
+       } catch (error) {
+         notification['error']({
+             message:'接口异常!',
+             description:'网络异常!'
+         });
+       };
     };
 
     async add(){
-      this.setState({
-        addLoading:true
-      });
-      let self=this;
-      setTimeout(function(){
-        self.setState({
-          addLoading:false
-        });
-      },2000);
-    };
 
-    async search(){
-      this.setState({
-        searchLoading:true
-      });
-      let self=this;
-      setTimeout(function(){
-        self.setState({
-          searchLoading:false
-        });
-      },2000);
-    };
-
-    async view(text){
-       console.log(text);
     };
 
     async edit(){
-      this.setState({
-        editLoading:true
-      });
-      let self=this;
-      setTimeout(function(){
-        self.setState({
-          editLoading:false
-        });
-      },2000);
+
     };
     
     async delete(){
 
     };
 
-    async gotoThispage(current,pagesize){
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
-        method:'post',
-        data:{
-          page:current,
-          pagesize:pagesize
-        }
+    /* treeData */
+    onExpand (expandedKeys){
+      this.setState({
+        expandedKeys
       });
-      if (res.data.code==='0000') {
-        this.setState({
-          dataSource:{
-            count:res.data.dataSource.count,
-            data:res.data.dataSource.data
-          }
-        })
+    };
+  
+    onSelect(selectedKeys, info){
+      console.log('selectedKeys',selectedKeys)
+      console.log('info',info);
+      let sendInfo,currentSelect;
+
+      currentSelect=info.node;
+      sendInfo=[];
+      if (selectedKeys.length===1) {
+        sendInfo.push(info.selectedNodes[0]);
+        /* judge is Delete */
+        if (info.selected) {
+          /* selectd */
+          /* sendInfo.push(info.selectedNodes) */
+          sendInfo.push(currentSelect);
+          /* end */
+        }else{
+          /* cancel selected */
+          let obj_i=_.findIndex(sendInfo,currentSelect);
+          console.log(obj_i);
+          /* end */
+        };
+        /* end */
+      }else{
+        sendInfo=info.selectedNodes.concat();
       };
+      this.setState({ selectedKeys });
+      const {eventKey,com_level,com_name,com_url,com_sort}=info.node.props;
+      this.setState({
+         autoExpandParent: true,
+         submitData:Object.assign({},this.state.submitData,{
+           level:{key:com_level},
+           name:com_name,
+           url:com_url,
+           sort:com_sort
+         }),
+         treeSelectInfo:sendInfo
+      });
+    };
+  
+    renderTreeNodes(data){
+      return data.map((item) => {
+        if (item.children) {
+          return (
+            <TreeNode 
+             icon={<Icon type="windows" />}
+             com_sort={item.com_sort}
+             com_name={item.com_Name}
+             com_level={item.com_level}
+             com_url={item.com_url} 
+             title={item.com_Name} 
+             key={item.com_key} 
+             dataRef={item}
+            >
+              {this.renderTreeNodes(item.children)}
+            </TreeNode>
+          );
+        };
+        return (
+           <TreeNode
+             icon={<Icon type="api" />}
+             com_sort={item.com_sort}
+             com_name={item.com_Name}
+             com_level={item.com_level}
+             com_url={item.com_url} 
+             title={item.com_Name} 
+             key={item.com_key} 
+             dataRef={item}
+            />
+        );
+      });
+    };
+    
+    renderTree(data){
+      if (data.length!==0) {
+        return(
+          <DirectoryTree 
+           showIcon 
+           defaultExpandAll
+           multiple
+           onExpand={this.onExpand}
+           onSelect={this.onSelect}            
+           className={Class.treeBlock}
+          >
+            {this.renderTreeNodes(this.state.treeData)}
+          </DirectoryTree>
+        )
+      }else{
+        return
+      }
+    };
+    /* end */
+    
+    /* bussiness */
+    levelSelect(value){
+      this.setState({
+        submitData:Object.assign({},this.state.submitData,{level:value})
+      });
     };
 
+    menuName(event){
+      this.setState({
+        submitData:Object.assign({},this.state.submitData,{name:event.target.value})
+      });
+    };
+    
+    menuUrl(event){
+      this.setState({
+        submitData:Object.assign({},this.state.submitData,{url:event.target.value})
+      });
+    };
+
+    menuSort(event){
+      this.setState({
+        submitData:Object.assign({},this.state.submitData,{sort:event.target.value})
+      });
+    };
+
+    /* end */
+
+    /* render menu */
+    renderEachMenu(OriginData){
+      console.log('recevieData',OriginData);
+      const renderList=[];
+      const data=[];
+      if (OriginData.length===0) {
+        return renderList;
+      };
+      OriginData.forEach(x=>{
+        if (x!==undefined) {
+          data.push(x);
+        };
+      });
+      for (let i =0;i<data.length;i++) {
+        let {dataRef}=data[i].props;
+        renderList.push(
+          <aside key={dataRef.com_key} className={Class.eachMenuDetails}>
+              <div className={Class.eachRow}>
+                  <label className={Class.generalLabel} htmlFor=''>菜单级别：</label>
+                  <Select
+                   className={Class.generalInput}
+                   defaultActiveFirstOption={true}
+                   labelInValue={true}
+                   onChange={this.levelSelect}
+                   value={[{key:dataRef.com_level}]}
+                  >
+                    <Option key='1' value='1'>一级</Option>
+                    <Option key='2' value='2'>二级</Option>
+                    <Option key='3' value='3'>三级</Option>
+                    <Option key='4' value='4'>四级</Option>
+                    <Option key='5' value='5'>五级</Option>
+                    <Option key='6' value='6'>六级</Option>
+                    <Option key='7' value='7'>七级</Option>
+                    <Option key='8' value='8'>八级</Option>
+                  </Select>
+                 </div>
+                 <div className={Class.eachRow}>
+                   <label className={Class.generalLabel} htmlFor=''>菜单名称：</label>
+                   <Input 
+                    className={Class.generalInput}
+                    onChange={this.menuName}
+                    value={dataRef.com_Name}
+                   />
+                 </div>
+                 <div className={Class.eachRow}>
+                   <label className={Class.generalLabel} htmlFor=''>菜单URL：</label>
+                   <Input 
+                    className={Class.generalInput}
+                    onChange={this.menuUrl}
+                    value={dataRef.com_url}
+                   />
+                 </div>
+                 <div className={Class.eachRow}>
+                   <label className={Class.generalLabel} htmlFor=''>菜单排序：</label>
+                   <Input 
+                    className={Class.generalInput}
+                    onChange={this.menuSort}
+                    value={dataRef.com_sort}
+                   />
+                 </div>
+                 <Button
+                   icon='check-circle'
+                   className={Class.submit_btn}
+                 >提交</Button>
+          </aside>
+        );
+      };
+      /* console.log('renderList',renderList); */
+      return renderList;
+    };
+    /* end */
+
+
   componentWillMount(){
-    this.setTableColumns();
-    this.getAreaList();
-    this.toSelectchange(1,10);
+    this.getTreeData();
   };
-
-
+  
   render(){
-      let count=this.state.dataSource.count;
-      let pageSize=this.state.queryInfo.pageSize;
-      let dataSource=this.state.dataSource.data;
-      let self=this;
+    const {treeData,treeSelectInfo}=this.state;
+    const {level,name,url,sort}=this.state.submitData;
       return(
         <article className={Class.main}>
            <nav>
              <div className={Class.eachCol}>
-               <label id={Class.opt_staff_lable} htmlFor={Class.opt_staff}>广告类型</label>
-               <Select id={Class.opt_select} defaultValue='上屏' style={{ width: `10%` }} onChange={self.selectSearch}>
-                 <Option value='all'>上屏</Option>
-                 <Option value='effective'>查询广告</Option>
-                 <Option value='invalid'>办理广告</Option>
-               </Select>
-               <label className={Class.opt_select_lable} htmlFor={Class.opt_select}>状态</label>
-               <Select id={Class.opt_select} defaultValue='全部' style={{ width: `10%` }} onChange={self.selectSearch}>
-                 <Option value='all'>全部</Option>
-                 <Option value='effective'>正常</Option>
-                 <Option value='invalid'>过期</Option>
-               </Select>
-               <Button icon='search' className={Class.search_btn} type="Default" loading={this.state.searchLoading} onClick={this.search}>查询</Button>
+               <Button icon='plus' className={Class.options_btn} type="primary" loading={this.state.searchLoading}>新建</Button>
+               <Button icon='form' className={Class.options_btn} type="primary" loading={this.state.searchLoading}>编辑</Button>
+               <Button icon='minus' className={Class.options_btn} type="danger" loading={this.state.searchLoading}>删除</Button>
              </div>
-             <div className={`${Class.eachCol} ${Class.marginT1}`}>
-             <label className={Class.opt_select_lable} htmlFor="">终端地区</label>
-             <Select id={Class.opt_select} className={Class.area} mode='multiple' style={{ width: `10%` }} onChange={self.selectSearch}>
-               {this.createAreaList(this.state.areaList)}
-             </Select>
-             <label className={Class.opt_select_lable} htmlFor="">截止时间</label>
-              <RangePicker onChange={self.onChange} />
-             </div>
-             <div className={`${Class.eachCol} ${Class.marginT2}`}>
-               <Button icon='plus' className={Class.add_btn} type="primary" loading={this.state.addLoading} onClick={this.add}>新增</Button>
-             </div>
+             <nav className={Class.eachColTreeModules}>
+               <article className={Class.leftTree}>
+                 {this.renderTree(treeData)}
+               </article>
+               <article className={Class.rightDetails}>
+                 {this.renderEachMenu(treeSelectInfo)}
+               </article>
+             </nav>
            </nav>
-           <div className={Class.table_main}>
-              <Table columns={this.tableColumns}
-                     rowKey='terminal_no'
-                     dataSource={dataSource}
-                     pagination={{
-                     total: count,
-                     pageSize: pageSize,
-                     defaultPageSize:pageSize,
-                     showSizeChanger: true,
-                     onShowSizeChange(current, pageSize) {
-                       self.toSelectchange(current, pageSize);
-                     },
-                     onChange(current) {
-                       self.gotoThispage(current, self.state.queryInfo.pageSize);
-                     },                                         
-                     showTotal: function () {
-                       return '共 ' + count + ' 条数据'; 
-                     },
-                     }}
-                     scroll={{x:``,y:`85%`}}
-              />
-           </div>
         </article>
       )
     }
 };
 
-/* const mapStateToProps = (state) => ({
-  dataArr:state.rightMenu.dataArr
-});
-
-export default withRouter(connect(
-  mapStateToProps
-)(BUS_open)) */
 
 
 

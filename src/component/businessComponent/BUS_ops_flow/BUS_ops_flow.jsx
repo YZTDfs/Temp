@@ -38,15 +38,19 @@ export default class BUS_ops_flow extends Component {
               ModalVisible:false
             },
             submitData:{
-              sysReNumber:'',
-              optTime:[],
-              terminal_no:'',
-              userId:'',
-              bankCardNumber:'',
-              transAmount:[],
-              optName:'',
-              returnCode:'',
-              status:''
+              sysReNumber:null,
+              optTime:null,
+              optTimeStart:null,
+              optTimeEnd:null,
+              terminal_no:null,
+              userId:null,
+              bankCardNumber:null,
+              transAmount:null,
+              transAmountStart:null,
+              transAmountEnd:null,
+              optName:null,
+              returnCode:null,
+              status:null
             },
             detailsDrawer:{
               Drvisible:false
@@ -84,9 +88,12 @@ export default class BUS_ops_flow extends Component {
                 illegalPoint:'',
                 illegalType:'',
                 illegalAddr:'', 
+                serNum:'',
+                motorer:'',
+                motorNum:''
               },
               fines:{
-                didHave:false,
+                type:'',
                 fines:'',
                 lateFee:''
               }
@@ -113,6 +120,9 @@ export default class BUS_ops_flow extends Component {
         this.transAmountEnd=this.transAmountEnd.bind(this);
         this.ticSubmit=this.ticSubmit.bind(this);
         this.ticCancel=this.ticCancel.bind(this);
+        this.selectSearch=this.selectSearch.bind(this);
+        this.responseCodeInput=this.responseCodeInput.bind(this);
+        this.renderPolice=this.renderPolice.bind(this);
         /* this.drawerOpen=this.drawerOpen.bind(this); */
         this.drawerClose=this.drawerClose.bind(this);
     };
@@ -121,44 +131,44 @@ export default class BUS_ops_flow extends Component {
       this.tableColumns = [
           {
             title: '系统参考号', 
-            dataIndex: 'sysReNumber', 
-            key: 'sysReNumber',
+            dataIndex: 'systemtrace', 
+            key: 'systemtrace',
             width:'10%'
           }, 
           {
             title: '操作名称',
-            dataIndex: 'optName',
-            key: 'optName',
+            dataIndex: 'transName',
+            key: 'transName',
             width:'15%'
           }, 
           {
             title: '用户号',
-            dataIndex: 'userId',
-            key: 'userId',
+            dataIndex: 'userno',
+            key: 'userno',
             width:'13%'
           }, 
           {
             title: '交易金额',
-            dataIndex: 'transAmount',
-            key: 'transAmount',
+            dataIndex: 'amount',
+            key: 'amount',
             width:'10%'
           },
           {
             title:'操作时间',
-            dataIndex:'optTime',
-            key:'optTime',
+            dataIndex:'transdate',
+            key:'transdate',
             width:'16%'
           },
           {
             title:'状态',
-            dataIndex:'status',
-            key:'status',
+            dataIndex:'transStatusEnum',
+            key:'transStatusEnum',
             width:'11%'
           },
           {
             title:'返回码',
-            dataIndex:'returnCode',
-            key:'returnCode',
+            dataIndex:'responsecode',
+            key:'responsecode',
             width:'12%'
           },
           {
@@ -168,36 +178,161 @@ export default class BUS_ops_flow extends Component {
           render: (text, record) => (
           <span className={Class.opt_span}>
             <Button className={Class.search_btn} type="primary" onClick={this.view.bind(this,text)}>查看</Button>
-            {record.needSUP===true?<Button className={Class.search_btn} type="primary" onClick={this.ticketSUP.bind(this,text)}>票据补打</Button>:null}
+            {record.transStatusEnum==='交易成功'?<Button className={Class.search_btn} type="primary" onClick={this.ticketSUP.bind(this,text)}>票据补打</Button>:null}
           </span>
           ),
       }];
     };
-    
+    /**
+     * Table
+     * @param {currentPage number} page 
+     * @param {currentPageSize number} num 
+     */
     async toSelectchange(page,num) {
-      let res=await Utils.axiosRequest({
-        url:Utils.devURL+'BUS_ops_flow',
-        method:'post',
-        data:{
-          page: page,
-      　　pagesize:num
-        }
-      });
-      if (res.data.code==='0000') {
-        this.setState({
-          queryInfo : {
-          　pageSize: num
-      　　　　},                     
-      　　dataSource:{
-      　　　 count: res.data.dataSource.count,
-      　　　 data: res.data.dataSource.data
-      　　　 }
-      　　});
-      }; 
+      const {sysReNumber,optTimeStart,optTimeEnd,transAmountStart,transAmountEnd,terminal_no,userId,bankCardNumber,optName,returnCode,status}=this.state.submitData;
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.testDevURL+'transLine/transLineList',
+          method:'post',
+          data:{
+            pageNum:page,
+            pageSize:num,
+            systemtrace:Utils.whiteToNull(sysReNumber),
+            terminaldate_start:Utils.whiteToNull(optTimeStart),
+            terminaldate_end:Utils.whiteToNull(optTimeEnd),
+            terminalid:Utils.whiteToNull(terminal_no),
+            userid:Utils.whiteToNull(userId),
+            cardno:Utils.whiteToNull(bankCardNumber),
+            amount_min:Utils.whiteToNull(transAmountStart),
+            amount_max:Utils.whiteToNull(transAmountEnd),
+            transName:Utils.whiteToNull(optName),
+            responsecode:Utils.whiteToNull(returnCode),
+            transstatus:Utils.whiteToNull(status)
+          }
+        });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              queryInfo:{
+                pageSize:num
+              },
+              dataSource:{
+                count:dataSource.count,
+                data:dataSource.data
+              },
+              searchLoading:false
+            });
+            break;
+          case '0300':
+             notification['warning']({
+               message:'接口异常!',
+               description:'啊哦，接口重新问题!'
+             });
+             this.setState({
+              searchLoading:false
+             });
+            break;
+          case '0500':
+             notification['warning']({
+               message:'操作失败!',
+               description:'您无权进行此项操作!'
+             });
+             this.setState({
+              searchLoading:false
+             });
+            break;
+          default:
+            break;
+        };
+      } catch (error) {
+        console.log(error);
+        notification['error']({
+          message:'接口异常!',
+          description:'网络异常!'
+        });
+      };
     };
 
+    async gotoThispage(current,pagesize){
+      const {sysReNumber,optTimeStart,optTimeEnd,terminal_no,userId,bankCardNumber,transAmountStart,transAmountEnd,optName,returnCode,status}=this.state.submitData;
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.testDevURL+'transLine/transLineList',
+          method:'post',
+          data:{
+            pageNum:current,
+            pageSize:pagesize,
+            systemtrace:Utils.whiteToNull(sysReNumber),
+            terminaldate_start:Utils.whiteToNull(optTimeStart),
+            terminaldate_end:Utils.whiteToNull(optTimeEnd),
+            terminalid:Utils.whiteToNull(terminal_no),
+            userid:Utils.whiteToNull(userId),
+            cardno:Utils.whiteToNull(bankCardNumber),
+            amount_min:Utils.whiteToNull(transAmountStart),
+            amount_max:Utils.whiteToNull(transAmountEnd),
+            transName:Utils.whiteToNull(optName),
+            responsecode:Utils.whiteToNull(returnCode),
+            transstatus:Utils.whiteToNull(status)
+          }
+        });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              dataSource:{
+                count:dataSource.count,
+                data:dataSource.data
+              },
+              searchLoading:false
+            });
+            break;
+          case '0300':
+             notification['warning']({
+               message:'接口异常!',
+               description:'啊哦，接口重新问题!'
+             });
+             this.setState({
+              searchLoading:false
+             });
+            break;
+          case '0500':
+             notification['warning']({
+               message:'操作失败!',
+               description:'您无权进行此项操作!'
+             });
+             this.setState({
+              searchLoading:false
+             });
+            break;
+          default:
+            break;
+        };
+      } catch (error) {
+        notification['error']({
+          message:'接口异常!',
+          description:'网络异常!'
+        });
+      };
+    };
+    /* end */
+
     async selectSearch(value){
-      console.log(value);
+      this.setState({
+        submitData:Object.assign({},this.state.submitData,{
+          status:parseInt(value,10) 
+        })
+      });
+    };
+
+    responseCodeInput(event){
+      this.setState({
+         submitData:Object.assign({},this.state.submitData,{
+           returnCode:event.target.value
+         })
+      });
     };
 
     async exportExcel(){
@@ -216,35 +351,19 @@ export default class BUS_ops_flow extends Component {
       this.setState({
         searchLoading:true
       });
-      const {sysReNumber,optTime,terminal_no,userId,bankCardNumber,transAmount,optName,returnCode,status}=this.state.submitData;
-      let postData={
-        sysReNumber:sysReNumber,
-        optTime:optTime,
-        terminal_no:terminal_no,
-        userId:userId,
-        bankCardNumber:bankCardNumber,
-        transAmount:transAmount,
-        optName:optName,
-        returnCode:returnCode,
-        status:status
-      };
-      let self=this;
-      setTimeout(function(){
-        self.setState({
-          searchLoading:false
-        });
-      },2000);
+      this.toSelectchange(1,10);
     };
 
     async view(text){
        let res;
        try {
         res=await Utils.axiosRequest({
-          url:Utils.mutilDevURl+'BUS_ops_flow/details',
+          url:Utils.testDevURL+'transLine/getTranLineDetail',
           method:'post',
-          data:{id:text.id}
+          /* data:{systemtrace:text.systemtrace} */
+          data:{systemtrace:'238711117096943616'}
         });
-        if (res.data.code==='0000') {
+/*         if (res.data.code==='0000') {
           const {system,unionpay,policeDep,fines}=res.data.dataSource;
           this.setState({
             detailsDrawer:{
@@ -290,8 +409,76 @@ export default class BUS_ops_flow extends Component {
              }
            }
           });
+        }; */
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+          const {transLine,traff}=dataSource.data;
+          this.setState({
+            detailsDrawer:{
+             Drvisible:true
+            },
+            detailsData:{
+             system:{
+               returnCode:transLine.responsecode,
+               errorType:'system.errorType',
+               help:'system.help',
+               terminal_ref:transLine.systemtrace,
+               terminal_no:transLine.terminalid,
+               optName:transLine.transName,
+               optTime:transLine.terminaldate,
+               userId:transLine.userid,
+               pyCash:transLine.amount,
+               ticStatus:transLine.receiptstatus
+             },
+             unionpay:{
+               returnCode:transLine.responsecode,
+               payNum:'unionpay.payNum',
+               payAmount:transLine.amount,
+               payTime:transLine.transdate,
+               bankCard:transLine.cardno,
+               busNum:transLine.userno
+             },
+             policeDep:{
+               returnCode:transLine.responsecode,
+               decNumber:traff.jdsbh,
+               illegaler:traff.dsr,
+               illegalTime:traff.wfsj,
+               driverCard:traff.jszh,
+               fileNumber:traff.dabh,
+               illegalAction:traff.wfxw,
+               illegalPoint:traff.wfjfs,
+               illegalType:traff.wfxwmc,
+               illegalAddr:traff.wfdz,
+               serNum:traff.xh,
+               motorer:'',
+               motorNum:''
+             },
+             fines:{
+               type:traff.wflx,
+               fines:traff.fkje,
+               lateFee:traff.znj
+             }
+           }
+          });
+          break;
+          case '0500':
+          notification['warning']({
+            message:'操作失败!',
+            description:'您无权进行此项操作!'
+          });
+          break;
+          case '0300':
+          notification['warning']({
+            message:'接口异常!',
+            description:'啊哦，接口出现问题!'
+          });
+          break;
+          default:
+            break;
         }
        } catch (error) {
+         console.log(error);
         notification['error']({
           message:'接口异常!',
           description:'网络出现问题!',
@@ -323,34 +510,6 @@ export default class BUS_ops_flow extends Component {
       });
     };
     
-
-    async gotoThispage(current,pagesize){
-      let res;
-      try {
-        res=await Utils.axiosRequest({
-          url:Utils.devURL+'BUS_ops_flow',
-          method:'post',
-          data:{
-            page:current,
-            pagesize:pagesize
-          }
-        });
-        if (res.data.code==='0000') {
-          this.setState({
-            dataSource:{
-              count:res.data.dataSource.count,
-              data:res.data.dataSource.data
-            }
-          })
-        };
-      } catch (error) {
-        notification['error']({
-          message:'接口异常!',
-          description:'网络出现问题!',
-        });
-      };
-    };
-
     callOptModal(){
       this.setState({
         optModalVisible:true
@@ -383,7 +542,6 @@ export default class BUS_ops_flow extends Component {
         optInput:treeStr,
         optModalVisible:false
       });
-      /* end */
     };
     
     /* tree */
@@ -395,18 +553,34 @@ export default class BUS_ops_flow extends Component {
           method:'post',
           data:{}
         });
-        if (res.data.code='0000') {
-          this.setState({
-            treeData:res.data.dataSource.data
-          });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              treeData:dataSource.data
+            });
+            break;
+          case '0300':
+            notification['warning']({
+              message:'接口异常!',
+              description:'啊哦,接口出现问题!'
+            });
+            break;
+          case '0500':
+            notification['warning']({
+              message:'操作失败!',
+              description:'您无权进行此项操作!'
+            });
+            break;
+          default:
+            break;
         };
       } catch (error) {
         notification['error']({
           message:'接口异常!',
           description:'网络出现问题!',
         });
-      }
-      
+      };
     };
     onExpand (expandedKeys){
       this.setState({
@@ -443,42 +617,43 @@ export default class BUS_ops_flow extends Component {
     /* business */
     terminal_no(event){
       this.setState({
-        submitData:{
-          terminal_no:event.target.value
-        }
-      });
+        submitData:Object.assign({},this.state.submitData,{
+           terminal_no:event.target.value
+        })
+      })
     };
 
     dataPick(dates,dateStrings){
       this.setState({
-        submitData:{
-          optTime:dateStrings
-        }
+        submitData:Object.assign({},this.state.submitData,{
+          optTimeStart:dateStrings[0],
+          optTimeEnd:dateStrings[1],
+        })
       });
     };
 
     sysReNumberIn(event){
       this.setState({
-        submitData:{
+        submitData:Object.assign({},this.state.submitData,{
           sysReNumber:event.target.value
-        }
+        })
       });
     };
 
     userId(event){
       this.setState({
-        submitData:{
-          userId:event.target.value
-        }
+        submitData:Object.assign({},this.state.submitData,{
+           userId:parseInt(event.target.value,10)
+        })
       });
     };
 
     bankCardNumber(event){
       this.setState({
-        submitData:{
-          bankCardNumber:event.target.value
-        }
-      })
+         submitData:Object.assign({},this.state.submitData,{
+           bankCardNumber:event.target.value
+         })
+      });
     };
 
     /* drawer */
@@ -492,7 +667,7 @@ export default class BUS_ops_flow extends Component {
     /* end */
 
     transAmountStart(event){
-      let cashArray=this.state.submitData.transAmount.concat();
+      /* let cashArray=this.state.submitData.transAmount.concat();
       if (cashArray.length!==2) {
         cashArray.push(event.target.value);
       }else{
@@ -502,11 +677,16 @@ export default class BUS_ops_flow extends Component {
         submitData:{
           transAmount:cashArray
         }
+      }); */
+      this.setState({
+        submitData:Object.assign({},this.state.submitData,{
+          transAmountStart:parseInt(event.target.value,10)
+        })
       });
     };
 
     transAmountEnd(event){
-      let cashArray=this.state.submitData.transAmount.concat();
+      /* let cashArray=this.state.submitData.transAmount.concat();
       if (cashArray.length!==2) {
         cashArray.push(event.target.value);
       }else{
@@ -516,7 +696,117 @@ export default class BUS_ops_flow extends Component {
         submitData:{
           transAmount:cashArray
         }
-      })
+      }) */
+      this.setState({
+        submitData:Object.assign({},this.state.submitData,{
+          transAmountEnd:parseInt(event.target.value,10)
+        })
+      });
+    };
+    /* end */
+
+    /* renderPolice */
+    renderPolice(data){
+      const {policeDep,fines}=data;
+      if (fines.wflx===1) {
+        return(
+          <tbody className={Class.detailsTr}>
+            <tr>
+              <td className={Class.tdName}>返回码</td>
+              <td>{policeDep.returnCode}</td>
+              <td className={Class.tdName}>决定书编号</td>
+              <td>{policeDep.decNumber}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>违法当事人</td>
+              <td>{policeDep.illegaler}</td>
+              <td className={Class.tdName}>违法时间</td>
+              <td>{policeDep.illegalTime}</td>
+              </tr>
+            <tr>
+              <td className={Class.tdName}>驾驶证号</td>
+              <td>{policeDep.driverCard}</td>
+              <td className={Class.tdName}>档案编号</td>
+              <td>{policeDep.fileNumber}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>违法行为</td>
+              <td>{policeDep.illegalAction}</td>
+              <td className={Class.tdName}>违法记分数</td>
+              <td>{policeDep.illegalPoint}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>违法行为名称</td>
+              <td colSpan='3'>{policeDep.illegalType}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>违法地址</td>
+              <td colSpan='3'>{policeDep.illegalAddr}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>罚款金额</td>
+              <td>{fines.fines}</td>
+              <td className={Class.tdName}>滞纳金额</td>
+              <td>{fines.lateFee}</td>
+            </tr>
+          </tbody>
+        )
+      }else{
+        return(
+          <tbody className={Class.detailsTr}>
+            <tr>
+              <td className={Class.tdName}>返回码</td>
+              <td>{policeDep.returnCode}</td>
+              <td className={Class.tdName}>序号</td>
+              <td>{policeDep.serNum}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>决定书编号</td>
+              <td>{policeDep.decNumber}</td>
+              <td className={Class.tdName}>罚款金额</td>
+              <td>{}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>号牌种类</td>
+              <td>{policeDep.illegaler}</td>
+              <td className={Class.tdName}>号牌号码</td>
+              <td>{policeDep.illegalTime}</td>
+              </tr>
+            <tr>
+              <td className={Class.tdName}>机动车所有人</td>
+              <td>{policeDep.motorer}</td>
+              <td className={Class.tdName}>所有人身份证号</td>
+              <td>{policeDep.motorNum}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>违法当事人</td>
+              <td>{policeDep.illegaler}</td>
+              <td className={Class.tdName}>违法时间</td>
+              <td>{policeDep.illegalTime}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>驾驶证号</td>
+              <td>{policeDep.driverCard}</td>
+              <td className={Class.tdName}>档案编号</td>
+              <td>{policeDep.fileNumber}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>违法行为</td>
+              <td>{policeDep.illegalAction}</td>
+              <td className={Class.tdName}>违法记分数</td>
+              <td>{policeDep.illegalPoint}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>违法行为名称</td>
+              <td colSpan='3'>{policeDep.illegalType}</td>
+            </tr>
+            <tr>
+              <td className={Class.tdName}>违法地址</td>
+              <td colSpan='3'>{policeDep.illegalAddr}</td>
+            </tr>
+          </tbody>
+        )
+      }
     };
     /* end */
 
@@ -535,6 +825,7 @@ export default class BUS_ops_flow extends Component {
       const {optModalVisible,confirmLoading,destroyOnClose,treeData,optInput ,sysReNumberIn}=this.state;
       const {ModalVisible}=this.state.ticketSUP;
       const {Drvisible}=this.state.detailsDrawer;
+      const {detailsData}=this.state;
       const {system,unionpay,policeDep,fines}=this.state.detailsData;
       return(
         <article className={Class.main}>
@@ -564,7 +855,7 @@ export default class BUS_ops_flow extends Component {
                         <td colSpan='3'>{system.help}</td>
                       </tr>
                       <tr>
-                        <td className={Class.tdName}>终端参考号</td>
+                        <td className={Class.tdName}>系统参考号</td>
                         <td>{system.terminal_ref}</td>
                         <td className={Class.tdName}>终端号</td>
                         <td>{system.terminal_no}</td>
@@ -618,47 +909,7 @@ export default class BUS_ops_flow extends Component {
                 <nav className={Class.eachRow}>湖北省公安厅交通管理局</nav>
                 <aside className={Class.detailsTable}>
                   <table>
-                    <tbody className={Class.detailsTr}>
-                      <tr>
-                        <td className={Class.tdName}>返回码</td>
-                        <td>{policeDep.returnCode}</td>
-                        <td className={Class.tdName}>错误类型</td>
-                        <td>{policeDep.errorType}</td>
-                      </tr>
-                      <tr>
-                        <td className={Class.tdName}>决定书编号</td>
-                        <td colSpan='3'>{policeDep.decNumber}</td>
-                      </tr>
-                      <tr>
-                        <td className={Class.tdName}>违法当事人</td>
-                        <td>{policeDep.illegaler}</td>
-                        <td className={Class.tdName}>违法时间</td>
-                        <td>{policeDep.illegalTime}</td>
-                      </tr>
-                      <tr>
-                        <td className={Class.tdName}>驾驶证号</td>
-                        <td>{policeDep.driverCard}</td>
-                        <td className={Class.tdName}>档案编号</td>
-                        <td>{policeDep.fileNumber}</td>
-                      </tr>
-                      <tr>
-                        <td className={Class.tdName}>违法行为</td>
-                        <td>{policeDep.illegalAction}</td>
-                        <td className={Class.tdName}>违法记分数</td>
-                        <td>{policeDep.illegalPoint}</td>
-                      </tr>
-                      <tr>
-                        <td className={Class.tdName}>违法行为名称</td>
-                        <td colSpan='3'>{policeDep.illegalType}</td>
-                      </tr>
-                      <tr>
-                        <td className={Class.tdName}>违法地址</td>
-                        <td colSpan='3'>{policeDep.illegalAddr}</td>
-                      </tr>
-                      {
-                        fines.didHave===true?<tr><td className={Class.tdName}>罚款金额</td><td>{fines.fines}</td><td className={Class.tdName}>滞纳金额</td><td>{fines.lateFee}</td></tr>:null
-                      }
-                    </tbody>
+                    {this.renderPolice(detailsData)}
                   </table>
                 </aside>
             </article>
@@ -666,9 +917,9 @@ export default class BUS_ops_flow extends Component {
            <nav>
              <div className={`${Class.eachCol} ${Class.marginT1}`}>
                <label className={Class.generalLabel} htmlFor="">系统参考号</label>
-               <Input className={Class.generalInput} type='text' onChange={sysReNumberIn} />
+               <Input className={Class.generalInput} type='text' onChange={this.sysReNumberIn} />
                <label className={Class.generalLabel} htmlFor="">操作日期</label>
-               <RangePicker className={Class.generalInput} onChange={self.dataPick} />
+               <RangePicker className={Class.generalInput} onChange={this.dataPick} />
                <label className={Class.generalLabel} htmlFor="">终端号</label>
                <Input className={Class.generalInput} type='text' onChange={this.terminal_no} />
                <Button icon='search' className={Class.search_btn} type="Default" loading={this.state.searchLoading} onClick={this.search}>查询</Button>
@@ -689,17 +940,17 @@ export default class BUS_ops_flow extends Component {
                <label className={Class.generalLabel} htmlFor=''>操作名称</label>
                <Input className={Class.generalInput} type="text" onClick={this.callOptModal} value={optInput} readOnly='readOnly'/>
                <label className={Class.generalLabel} >返回码</label>
-               <Input className={Class.generalInput} type="text" />
+               <Input className={Class.generalInput} type="text" onChange={this.responseCodeInput} />
                <label className={Class.generalLabel} htmlFor={Class.opt_select}>状态</label>
-               <Select id={Class.opt_select} defaultValue='全部' style={{ width: `10%` }} onChange={self.selectSearch}>
-                 <Option value='all'>全部</Option>
-                 <Option value='init'>初始化</Option>
-                 <Option value='optSuccess'>操作成功</Option>
-                 <Option value='optFailed'>操作失败</Option>
-                 <Option value='unfirm'>未确认</Option>
-                 <Option value="waitForReversal">待冲正</Option>
-                 <Option value="reversalSuccess">冲正成功</Option>
-                 <Option value="reversalFailed">冲正失败</Option>
+               <Select id={Class.opt_select} defaultValue='全部' style={{ width: `10%` }} onChange={this.selectSearch}>
+                 <Option value='null'>全部</Option>
+                 <Option value='-1'>初始化</Option>
+                 <Option value='0'>交易成功</Option>
+                 <Option value='1'>交易失败</Option>
+                 <Option value='9'>交易未确认</Option>
+                 <Option value='2'>需要冲正</Option>
+                 <Option value='3'>冲正成功</Option>
+                 <Option value='4'>冲正失败</Option>
                </Select>
              </div>
 
@@ -710,7 +961,7 @@ export default class BUS_ops_flow extends Component {
            </nav>
            <div className={Class.table_main}>
               <Table columns={this.tableColumns}
-                     rowKey='id'
+                     rowKey='systemtrace'
                      dataSource={dataSource}
                      pagination={{
                      total: count,
@@ -734,14 +985,6 @@ export default class BUS_ops_flow extends Component {
       )
     }
 };
-
-/* const mapStateToProps = (state) => ({
-  dataArr:state.rightMenu.dataArr
-});
-
-export default withRouter(connect(
-  mapStateToProps
-)(BUS_open)) */
 
 
 

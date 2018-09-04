@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
 import * as Utils from '../../../utils/fetch';
 import * as Class from './SYS_bus_manage.less';
-import {Table,Select,Input,Button,Icon,DatePicker} from 'antd';
+import { Table, Select, Input, Button, Icon, DatePicker ,Modal, notification} from 'antd';
 import '../../comDefaultLess/importantCSS.css';
-import {withRouter} from 'react-router-dom';
-import {connect} from 'react-redux';
 
-//const { Column, ColumnGroup } = Table;
+
+
 const Option=Select.Option;
-const {RangePicker}=DatePicker;
+const confirm=Modal.confirm;
 export default class SYS_bus_manage extends Component {
     constructor(props,context){
         super(props,context);
@@ -22,16 +21,30 @@ export default class SYS_bus_manage extends Component {
             　count: 0,
             　data: []
         　　},
-            areaList:[]
+            areaList:[],
+            modalTitle: '',
+            modalVisible: false,
+            /* select */
+            optName:{key:'0',label:''},
+            busType:{key:'0',label:''},
+            /* submitData */
+            m_optName:{key:'0',label:''},
+            m_busType:null
+            /* end */
+
         };
-        this.select=this.select.bind(this);
         this.getAreaList=this.getAreaList.bind(this);
         this.toSelectchange=this.toSelectchange.bind(this);
         this.add=this.add.bind(this);
         this.search=this.search.bind(this);
-        this.edit=this.edit.bind(this);
-        this.delete=this.delete.bind(this);
-        this.view=this.view.bind(this);
+        /* bussiness */
+        this.optNameSelect=this.optNameSelect.bind(this);
+        this.busTypeSelect=this.busTypeSelect.bind(this);
+        /* modal */
+        this.m_optNameSelect=this.m_optNameSelect.bind(this);
+        this.m_busTypeInput=this.m_busTypeInput.bind(this);
+        this.modalSubmit=this.modalSubmit.bind(this);
+        this.modalCancel=this.modalCancel.bind(this);
     };
 
     createAreaList(e){
@@ -57,68 +70,49 @@ export default class SYS_bus_manage extends Component {
       };
    };
 
-    select(){
-
-    };
-
     setTableColumns() { 
       this.tableColumns = [
           {
-            title: '终端号', 
+            title: '机构名称', 
             dataIndex: 'terminal_no', 
             key: 'terminal_no',
-            width:'10%'
+            width:'16%'
           }, 
           {
-            title: '广告类型',
+            title: '业务类型',
             dataIndex: 'type',
             key: 'type',
-            width:'8%'
+            width:'25%'
           }, 
           {
-            title: '素材名称',
+            title: '最后操作人',
             dataIndex: 'material',
             key: 'material',
-            width:'23%'
-          }, 
-          {
-            title: '状态',
-            dataIndex: 'status',
-            key: 'status',
-            width:'10%'
+            width:'20%'
           },
           {
-            title:'提交人',
-            dataIndex:'submitter',
-            key:'submitter',
-            width:'10%'
-          },
-          {
-            title:'提交时间',
+            title:'修改时间',
             dataIndex:'modify_time',
             key:'modify_time',
-            width:'11%'
-          },
-          {
-            title:'截止日期',
-            dataIndex:'end_time',
-            key:'end_time',
-            width:'12%'
+            width:'25%'
           },
           {
           title: '操作',
           key: 'operation',
-          width:'15%',
+          width:'14%',
           render: (text, record) => (
           <span className={Class.opt_span}>
-            <Button className={Class.search_btn} type="primary" onClick={this.view}>预览</Button>
-            <Button className={Class.search_btn} type="primary" onClick={this.edit}>编辑</Button>
-            <Button className={Class.search_btn} type="danger" onClick={this.delete}>删除</Button>
+            <Button className={Class.search_btn} type="primary" onClick={this.edit.bind(this,record)}>编辑</Button>
+            <Button className={Class.search_btn} type="danger" onClick={this.delete.bind(this,record)}>删除</Button>
           </span>
           ),
       }];
     };
-    
+    /**
+     * Table
+     * @param {currentPage} page 
+     * @param {currentSize} num 
+     */
     async toSelectchange(page,num) {
       let res=await Utils.axiosRequest({
         url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
@@ -140,55 +134,6 @@ export default class SYS_bus_manage extends Component {
       　　});
       }; 
     };
-
-    async selectSearch(value){
-      console.log(value);
-    };
-
-    async add(){
-      this.setState({
-        addLoading:true
-      });
-      let self=this;
-      setTimeout(function(){
-        self.setState({
-          addLoading:false
-        });
-      },2000);
-    };
-
-    async search(){
-      this.setState({
-        searchLoading:true
-      });
-      let self=this;
-      setTimeout(function(){
-        self.setState({
-          searchLoading:false
-        });
-      },2000);
-    };
-
-    async view(text){
-       console.log(text);
-    };
-
-    async edit(){
-      this.setState({
-        editLoading:true
-      });
-      let self=this;
-      setTimeout(function(){
-        self.setState({
-          editLoading:false
-        });
-      },2000);
-    };
-    
-    async delete(){
-
-    };
-
     async gotoThispage(current,pagesize){
       let res=await Utils.axiosRequest({
         url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
@@ -207,6 +152,70 @@ export default class SYS_bus_manage extends Component {
         })
       };
     };
+    /* end */
+    async search(){
+      this.toSelectchange(1,10);
+    };
+    async modalSubmit() {
+      
+    };
+    async modalCancel(){
+      this.setState({
+        modalVisible: false
+      });
+    };
+    async add(){
+      this.setState({
+        modalVisible:true,
+        modalTitle: '新增业务',
+        m_optName:{key:'0',label:''},
+        m_busType:null
+      });
+    };
+    async edit(){
+      this.setState({
+        modalVisible:true,
+        modalTitle: '编辑业务'
+      });
+    };
+    async delete(record){
+      confirm({
+        title: '删除机构?',
+        content: '是否确定删除机构?',
+        okText: '确定',
+        okType: 'danger',
+        cancelText:'取消',
+        onOk() {
+          console.log('OK',record);
+        },
+        onCancel() {
+          console.log('Cancel');
+        },
+      });
+    };
+    /* bussniess */
+    optNameSelect(value){
+       this.setState({
+         optName:value
+       });
+    };
+    busTypeSelect(value){
+       this.setState({
+         busType:value
+       });
+    };
+    m_optNameSelect(value){
+      this.setState({
+        m_optName:value
+      });
+    };
+    m_busTypeInput(event){
+      this.setState({
+        m_busType:event.target.value
+      });
+    };
+    /* end */
+    
 
   componentWillMount(){
     this.setTableColumns();
@@ -219,32 +228,65 @@ export default class SYS_bus_manage extends Component {
       let count=this.state.dataSource.count;
       let pageSize=this.state.queryInfo.pageSize;
       let dataSource=this.state.dataSource.data;
-      let self=this;
+      let {modalTitle, modalVisible,optName,busType,m_optName,m_busType} = this.state;
+      let component=this;
       return(
         <article className={Class.main}>
+          <Modal 
+           title={modalTitle} 
+           visible={modalVisible} 
+           onOk={this.modalSubmit} 
+           onCancel={this.modalCancel} 
+           confirmLoading={false} 
+           okText='确认' 
+           cancelText='取消' 
+           destroyOnClose={true} 
+           closable={false} 
+           maskClosable={false}
+           className={Class.ticModal} 
+           wrapClassName={Class.optModalTree}
+          >
+            <div className={Class.m_eachCol}>
+              <label className={Class.generalLabel} htmlFor=''>机构名称：</label>
+              <Select 
+               className={Class.generalInput} 
+               onChange={this.m_optNameSelect}
+               labelInValue={true}
+               value={m_optName}
+              >
+                <Option value='effective'>终端业务</Option>
+              </Select>
+            </div>
+            <div className={Class.m_eachCol}>
+              <label className={Class.generalLabel} htmlFor=''>业务类型：</label>
+              <Input className={Class.generalInput} onChange={this.m_busTypeInput} value={m_busType}/>
+            </div>
+          </Modal>
            <nav>
              <div className={Class.eachCol}>
-               <label id={Class.opt_staff_lable} htmlFor={Class.opt_staff}>广告类型</label>
-               <Select id={Class.opt_select} defaultValue='上屏' style={{ width: `10%` }} onChange={self.selectSearch}>
-                 <Option value='all'>上屏</Option>
-                 <Option value='effective'>查询广告</Option>
-                 <Option value='invalid'>办理广告</Option>
+               <label className={Class.generalLabel} htmlFor=''>机构名称：</label>
+               <Select 
+                className={Class.generalInput} 
+                onChange={this.optNameSelect}
+                labelInValue={true}
+                value={optName}
+               >
+                 <Option value='0'>上屏</Option>
+                 <Option value='1'>查询广告</Option>
+                 <Option value='2'>办理广告</Option>
                </Select>
-               <label className={Class.opt_select_lable} htmlFor={Class.opt_select}>状态</label>
-               <Select id={Class.opt_select} defaultValue='全部' style={{ width: `10%` }} onChange={self.selectSearch}>
-                 <Option value='all'>全部</Option>
-                 <Option value='effective'>正常</Option>
-                 <Option value='invalid'>过期</Option>
+               <label className={Class.generalLabel} htmlFor=''>业务类型：</label>
+               <Select 
+                className={Class.generalInput} 
+                onChange={this.busTypeSelect}
+                labelInValue={true}
+                value={busType}
+               >
+                 <Option value='null'>全部</Option>
+                 <Option value='0'>正常</Option>
+                 <Option value='1'>过期</Option>
                </Select>
                <Button icon='search' className={Class.search_btn} type="Default" loading={this.state.searchLoading} onClick={this.search}>查询</Button>
-             </div>
-             <div className={`${Class.eachCol} ${Class.marginT1}`}>
-             <label className={Class.opt_select_lable} htmlFor="">终端地区</label>
-             <Select id={Class.opt_select} className={Class.area} mode='multiple' style={{ width: `10%` }} onChange={self.selectSearch}>
-               {this.createAreaList(this.state.areaList)}
-             </Select>
-             <label className={Class.opt_select_lable} htmlFor="">截止时间</label>
-              <RangePicker onChange={self.onChange} />
              </div>
              <div className={`${Class.eachCol} ${Class.marginT2}`}>
                <Button icon='plus' className={Class.add_btn} type="primary" loading={this.state.addLoading} onClick={this.add}>新增</Button>
@@ -260,10 +302,10 @@ export default class SYS_bus_manage extends Component {
                      defaultPageSize:pageSize,
                      showSizeChanger: true,
                      onShowSizeChange(current, pageSize) {
-                       self.toSelectchange(current, pageSize);
+                       component.toSelectchange(current, pageSize);
                      },
                      onChange(current) {
-                       self.gotoThispage(current, self.state.queryInfo.pageSize);
+                       component.gotoThispage(current, component.state.queryInfo.pageSize);
                      },                                         
                      showTotal: function () {
                        return '共 ' + count + ' 条数据'; 
@@ -277,13 +319,6 @@ export default class SYS_bus_manage extends Component {
     }
 };
 
-/* const mapStateToProps = (state) => ({
-  dataArr:state.rightMenu.dataArr
-});
-
-export default withRouter(connect(
-  mapStateToProps
-)(BUS_open)) */
 
 
 

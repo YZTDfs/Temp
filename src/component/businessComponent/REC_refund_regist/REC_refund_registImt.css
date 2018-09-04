@@ -1,8 +1,11 @@
 @import '~antd/dist/antd.css';
+.w40 .ant-drawer-content-wrapper{
+    width: 40%;
+}
+.w40 .ant-drawer-content-wrapper,.ant-drawer-body{
+    height: 100%;
+}
+.h23 .ant-time-picker-input{
+    height: 23px !important;
+}
 
-.w75,.ant-drawer-content-wrapper{
-    width: 63%;
-}
-.w75,.ant-drawer-content-wrapper,.ant-drawer-body{
-    height: 88%;
-}

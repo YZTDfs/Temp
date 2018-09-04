@@ -60,6 +60,21 @@
 
 }
 
+.shadow(@1px,@2px,@3px,@color){
+  -webkit-box-shadow: @1px @2px @3px @color;
+  box-shadow: @1px @2px @3px @color;
+}
+
+.shadow4rth(@1px, @2px, @3px,@4px, @color){
+  -webkit-box-shadow: @1px @2px @3px @4px @color;
+  box-shadow: @1px @2px @3px @4px @color;
+}
+
+.animationForward(){
+  animation-fill-mode:forwards;
+  -webkit-animation-fill-mode:forwards;
+}
+
 /* -------------------------Animation-Start------------------------------- */
 
 .exMenuOn(@name,@maxHeight){
@@ -160,5 +175,55 @@
 }
 .animation4rd(@name,@time,@way){
   
+}
+
+.appearShadow(@name,@longPx,@apperPx,@color){
+  @-webkit-keyframes @name {
+    0%{
+      box-shadow: 0px 0px @longPx 0px @color;
+    }
+    50%{
+      box-shadow: 0px 0px @longPx @apperPx/2 @color;
+    }
+    100%{
+      box-shadow: 0px 0px @longPx @apperPx @color;
+    }
+   }
+   @keyframes @name {
+    0%{
+      box-shadow: 0px 0px @longPx 0px @color;
+    }
+    50%{
+      box-shadow: 0px 0px @longPx @apperPx/2 @color;
+    }
+    100%{
+      box-shadow: 0px 0px @longPx @apperPx @color;
+    }
+   }
+}
+
+.disapperShadow(@name,@longPx,@apperPx,@color){
+  @-webkit-keyframes @name {
+    0%{
+      box-shadow: 0px 0px @longPx @apperPx @color;
+    }
+    50%{
+      box-shadow: 0px 0px @longPx @apperPx/2 @color;
+    }
+    100%{
+      box-shadow: 0px 0px @longPx 0px @color;
+    }
+   }
+   @keyframes @name {
+    0%{
+      box-shadow: 0px 0px @longPx @apperPx @color;
+    }
+    50%{
+      box-shadow: 0px 0px @longPx @apperPx/2 @color;
+    }
+    100%{
+      box-shadow: 0px 0px @longPx 0px @color;
+    }
+   }
 }
 /* -------------------------Animation-End--------------------------------- */

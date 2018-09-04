@@ -50,7 +50,7 @@ class LeftMenu extends Component {
               <img src={images[''+e.id+'']} alt='icon' />
               <p>{e.title}</p>
             </div>
-            <div sec-id={`${e.id}${renderState===true?'On':'Off'}`} className={`${Class.menu2nd} ${renderState===true?Class.ndShow:Class.ndHide}`}>
+            <div sec-id={`${e.id}${renderState===true?'On':'Off'}`} ani-id={`${renderState===true?'On':'Off'}${e.sec_menu.length}`} className={`${Class.menu2nd} ${renderState===true?Class.ndShow:Class.ndHide}`}>
               {list}
             </div>
           </nav>

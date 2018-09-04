@@ -21,18 +21,19 @@ export const LoginInit=()=>{
 export const Login=(userName,userPassWord)=>{
   return async dispatch=>{
     let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/user/login',
+        /* url:Utils.prodURL+'oss/user/login', */
+        url:Utils.mutilDevURl+'oss/user/login',
         method:'post',
         data:{
-            username:userName,
+            userName:userName,
             password:userPassWord
         }
     });
     if (res.data.code==='0000') {
         Rrestore.store.dispatch({
           type:type.LOGIN,
-          userPermission:res.data.userPermission,
-          accountName:res.data.accountName
+          userPermission:res.data.dataSource.data.userPermission,
+          accountName:res.data.dataSource.data.accountName
        });
     }else{
         Rrestore.store.dispatch({
@@ -48,14 +49,15 @@ export const Login=(userName,userPassWord)=>{
 export const LoadMenu=()=>{
     return async dispatch => {
         let res=await Utils.axiosRequest({
-            url:'http://192.168.20.185:9777/oss/menu/each',
+            /* url:Utils.prodURL+'oss/menu/each', */
+            url:Utils.mutilDevURl+'oss/menu/each',
             method:'post',
             data:{}
           });
           if (res.data.code==='0000') {
               Rrestore.store.dispatch({
                   type:type.LOAD_MENU,
-                  menuArr:res.data.data
+                  menuArr:res.data.dataSource.data
               });
           };
     };

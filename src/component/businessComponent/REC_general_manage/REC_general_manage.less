@@ -15,19 +15,18 @@
         margin-top: 1%;
         &>.eachCol{
             height: 26%;
-            &>#opt_staff_lable{
-                margin-right: 1%;
+            &>.generalLabel{
                 margin-left: 1%;
-            }
-            &>#opt_staff{
-                width: 10%;
-                height: 94%;
-            }
-            &>.opt_select_lable{
                 margin-right: 1%;
-                margin-left: 1%;
+                .inlineBlock();
+                min-width: 5%;
             }
-            &>#opt_select{}
+            &>.generaSelect{
+                width: 10% !important;
+            }
+            &>.generalInput{
+                width: 10% !important;
+            }
             &>.add_btn{
                 min-width: 5%;
                 max-width: 7%;
@@ -49,16 +48,7 @@
         }
     }
 }
-.optModalTree{
-    .flex;
-    /* height: 60%; */
-    align-items: center;
-    justify-content: center;
-}
-.ticModal{
-    width: 30% !important;
-    top:0 !important;
-}
+
 .table_main{
     /* margin-top: 5%; */
     height: @mainHeight;

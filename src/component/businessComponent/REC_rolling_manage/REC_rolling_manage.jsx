@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import * as Utils from '../../../utils/fetch';
 import * as Class from './REC_rolling_manage.less';
-import {Table,Select,Input,Button,Icon,DatePicker,notification,Drawer,Modal} from 'antd';
+import {Table,Select,Input,Button,DatePicker,notification,Drawer,Modal} from 'antd';
 import '../../comDefaultLess/importantCSS.css';
 import './REC_rolling_manageImt.css';
 
@@ -22,6 +22,18 @@ export default class REC_rolling_manage extends Component {
             　count: 0,
             　data: []
         　　},
+            pageNum:1,
+            queryCondition:{
+              systemTrace:null,
+              balanceStartDate:null,
+              balanceEndDate:null,
+              lackStatus:null,
+              procesStatus:null,
+              instituteId:null,
+              paymentShop:null,
+              bussinessPackId:null,
+              processMode:null
+            },
             bussinesNameSelect:[],
             bussinesSideSelect:[],
             merchantNameSelect:[],
@@ -61,22 +73,28 @@ export default class REC_rolling_manage extends Component {
             },
             Modal:{
               ModalVisible:false,
-              dealStatus:'',
-              checkStatus:'',
-              dealType:'',
-              dealReason:'',
-              remark:''
-            }
+              dealStatus:null,
+              checkStatus:null,
+              dealType:null,
+              dealReason:null,
+              remark:null
+            },
+            submitData:{
+              systemtrace:null,
+              balanceStartDate:null,
+              balanceEndDate:null,
+              lackstatus:null,
+              processtatus:null,
+              instituteid:null,
+              paymentshop:null,
+              /* bussiness null */
+              processmode:null
+            },
+            refundInputState:true,
         };
-        this.toSelectchange=this.toSelectchange.bind(this);
         this.search=this.search.bind(this);
-        this.edit=this.edit.bind(this);
-        this.view=this.view.bind(this);
         /* this.selectSearch=this.selectSearch.bind(this); */
-        this.selectSearchBUS=this.selectSearchBUS.bind(this);
-        this.selectSearchNAME=this.selectSearchNAME.bind(this);
-        this.selectSearchMER=this.selectSearchMER.bind(this);
-        this.initSelectList=this.initSelectList.bind(this);
+        /* this.initSelectList=this.initSelectList.bind(this); */
         this.drawerClose=this.drawerClose.bind(this);
         this.createDetailTD=this.createDetailTD.bind(this);
         this.ModalSubmit=this.ModalSubmit.bind(this);
@@ -84,33 +102,50 @@ export default class REC_rolling_manage extends Component {
         this.dealTypeSelect=this.dealTypeSelect.bind(this);
         this.dealTypeReason=this.dealTypeReason.bind(this);
         this.remarkInput=this.remarkInput.bind(this);
+        /* control bussiness */
+        this.getSysRefNum=this.getSysRefNum.bind(this);
+        this.selectSearchBUS=this.selectSearchBUS.bind(this);
+        this.selectSearchNAME=this.selectSearchNAME.bind(this);
+        this.selectSearchMER=this.selectSearchMER.bind(this);
+        this.selectSearchRES=this.selectSearchRES.bind(this);
+        this.getTransDate=this.getTransDate.bind(this);
+        /* end */
+        /* table Query */
+        this.dealWay=this.dealWay.bind(this);
+        this.dealStatus=this.dealStatus.bind(this);
+        /* end */
+        /* DetailInfo */
+        this.detailInfo='';
+        /* end */
     };
 
-    createAreaList(e){
+    createSelectList(e){
       let item=[];
-      item.push(
-         <Option key='all' value='all'>全部</Option>
-      );
-      e.forEach((x,i) => {
-        item.push(
-          <Option key={x.id} value={x.selectName}>{x.selectName}</Option>
-        )
-      });
+      let obj_keys=[];
+      for (const obj_key in e[0]) {
+       obj_keys.push(obj_key);
+      };
+      if (e.length!==0) {
+        e.forEach(x => {
+          item.push(
+            <Option key={x[obj_keys[0]]} value={x[obj_keys[0]]}>{x[obj_keys[1]]}</Option>
+          );
+        });
+      };
       return item;
     };
-
-<<<<<<< HEAD
-    async getAreaList(){
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
-        method:'post',
-        data:{}
+    createShopList(e){
+     let list=[];
+     if(e!==null||e!==undefined){
+      e.forEach(x=>{
+        list.push(
+          <Option key={x.gnetshop} value={x.gnetshop}>{x.gnetshopname}</Option>
+        )
       });
-      if (res.data.code==='0000') {
-         this.setState({
-           areaList:res.data.data
-=======
-    async initSelectList(e){
+     };
+     return list;
+    };
+    /* async initSelectList(e){
       let res,data;
       try {
         if (e===undefined) {
@@ -118,7 +153,6 @@ export default class REC_rolling_manage extends Component {
            url:Utils.mutilDevURl+'REC_rolling_manage_select',
            method:'post',
            data:{}
->>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
          });
          switch (res.data.code) {
             case '0000':
@@ -186,165 +220,343 @@ export default class REC_rolling_manage extends Component {
           description:'网络异常!'
         });
       };
-    };
+    }; */
     /* table */
     setTableColumns() { 
       this.tableColumns = [
           {
             title: '系统参考号', 
-            dataIndex: 'sysRefNum', 
-            key: 'sysRefNum',
+            dataIndex: 'systemTrace', 
+            key: 'systemTrace',
             width:'10%'
           }, 
           {
             title: '业务方',
-            dataIndex: 'businessSide',
-            key: 'businessSide',
+            dataIndex: 'instituteName',
+            key: 'instituteName',
             width:'11%'
           }, 
           {
             title: '业务名称',
-            dataIndex: 'businessName',
-            key: 'businessName',
+            dataIndex: 'bussinessPackName',
+            key: 'bussinessPackName',
             width:'12%'
           }, 
           {
             title: '支付金额',
-            dataIndex: 'payAmount',
-            key: 'payAmount',
+            dataIndex: 'amount',
+            key: 'amount',
             width:'10%'
           },
           {
             title:'交易时间',
-            dataIndex:'pyTime',
-            key:'pyTime',
+            dataIndex:'transDate',
+            key:'transDate',
             width:'10%'
           },
           {
             title:'对账结果',
-            dataIndex:'checkRes',
-            key:'checkRes',
+            dataIndex:'lackStatus',
+            key:'lackStatus',
             width:'11%'
           },
           {
             title:'最后处理方式',
-            dataIndex:'finalTre',
-            key:'finalTre',
+            dataIndex:'processMode',
+            key:'processMode',
             width:'12%'
           },
           {
             title:'处理状态',
-            dataIndex:'dealStatus',
-            key:'dealStatus',
+            dataIndex:'procesStatus',
+            key:'procesStatus',
             width:'8%'
           },
           {
-          title: '操作',
-          key: 'operation',
-          width:'12%',
-          render: (text, record) => (
-          <span className={Class.opt_span}>
-            <Button className={Class.search_btn} type="primary" onClick={this.view}>查看</Button>
-            {record.finish===true?null:<Button className={Class.search_btn} type="primary" onClick={this.edit}>处理</Button>}
-          </span>
-          ),
+            title: '操作',
+            key: 'operation',
+            width:'12%',
+            render: (text, record) =>{
+              return this.renderButton(record);
+          },
       }];
     };
-    
     async toSelectchange(page,num) {
-      let res=await Utils.axiosRequest({
-<<<<<<< HEAD
-        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
-=======
-        url:Utils.mutilDevURl+'REC_rolling_manage',
->>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
-        method:'post',
-        data:{
-          page: page,
-      　　pagesize:num
-        }
-      });
-      if (res.data.code==='0000') {
-        this.setState({
-          queryInfo : {
-          　pageSize: num
-      　　　　},                     
-      　　dataSource:{
-      　　　 count: res.data.dataSource.count,
-      　　　 data: res.data.dataSource.data
-      　　　 }
-      　　});
-      }; 
-    };
-
-    async gotoThispage(current,pagesize){
-      let res=await Utils.axiosRequest({
-        url:Utils.mutilDevURl+'REC_rolling_manage',
-        method:'post',
-        data:{
-          page:current,
-          pagesize:pagesize
-        }
-      });
-      if (res.data.code==='0000') {
-        this.setState({
-          dataSource:{
-            count:res.data.dataSource.count,
-            data:res.data.dataSource.data
+      const {systemTrace,balanceEndDate,balanceStartDate,lackStatus,procesStatus,instituteId,paymentShop,bussinessPackId,processMode}=this.state.queryCondition;
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.testDevURL+'balancelack/getBalancelack',
+          method:'post',
+          data:{
+            pageNum:page,
+            pageSize:num,
+            systemTrace:Utils.whiteToNull(systemTrace),
+            balanceEndDate:Utils.whiteToNull(balanceEndDate),
+            balanceStartDate:Utils.whiteToNull(balanceStartDate),
+            lackStatus:parseInt(Utils.whiteToNull(lackStatus),10),
+            procesStatus:parseInt(Utils.whiteToNull(procesStatus),10),
+            instituteId:parseInt(Utils.whiteToNull(instituteId),10),
+            paymentShop:parseInt(Utils.whiteToNull(paymentShop),10),
+            bussinessPackId:parseInt(Utils.whiteToNull(bussinessPackId),10),
+            processMode:parseInt(Utils.whiteToNull(processMode),10) 
           }
+        });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              queryInfo : {
+                　pageSize: num
+            　},                     
+            　dataSource:{
+            　　　 count: dataSource.count,
+            　　　 data: dataSource.data
+            　},
+             pageNum:page
+            });
+            break;
+          case '0300':
+            notification['warning']({
+              message:Utils.warn300.msg,
+              description:Utils.warn300.desc
+            });
+            break;
+          case '0500':
+            notification['warning']({
+              message:Utils.warn500.msg,
+              description:Utils.warn500.desc
+            });
+            break;
+        
+          default:
+            break;
+        }
+      } catch (error) {
+        notification['error']({
+          message:Utils.error.msg,
+          description:Utils.error.desc
+        });
+      };
+    };
+    async gotoThispage(current,pagesize){
+      const {systemTrace,balanceEndDate,balanceStartDate,lackStatus,procesStatus,instituteId,paymentShop,bussinessPackId,processMode}=this.state.queryCondition;
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.testDevURL+'balancelack/getBalancelack',
+          method:'post',
+          data:{
+            pageNum:current,
+            pageSize:pagesize,
+            systemTrace:Utils.whiteToNull(systemTrace),
+            balanceEndDate:Utils.whiteToNull(balanceEndDate),
+            balanceStartDate:Utils.whiteToNull(balanceStartDate),
+            lackStatus:parseInt(Utils.whiteToNull(lackStatus),10),
+            procesStatus:parseInt(Utils.whiteToNull(procesStatus),10),
+            instituteId:parseInt(Utils.whiteToNull(instituteId),10),
+            paymentShop:parseInt(Utils.whiteToNull(paymentShop),10),
+            bussinessPackId:parseInt(Utils.whiteToNull(bussinessPackId),10),
+            processMode:parseInt(Utils.whiteToNull(processMode),10) 
+          }
+        });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              queryInfo : {
+                　pageSize: pagesize
+            　},                     
+            　dataSource:{
+            　　　 count: dataSource.count,
+            　　　 data: dataSource.data
+            　},
+              pageNum:current,
+              searchLoading:false
+            });
+            break;
+          case '0300':
+            notification['warning']({
+              message:Utils.warn300.msg,
+              description:Utils.warn300.desc
+            });
+            break;
+          case '0500':
+            notification['warning']({
+              message:Utils.warn500.msg,
+              description:Utils.warn500.desc
+            });
+            break;
+        
+          default:
+            break;
+        }
+      } catch (error) {
+        notification['error']({
+          message:Utils.error.msg,
+          description:Utils.error.desc
+        });
+      };
+    };
+    /* end */
+
+    /* getAreaListMenu */
+    async getBUSside(){
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.testDevURL+'/institute/instituteAll',
+          method:'post',
+          data:{}
+        });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              bussinesSideSelect:dataSource.data
+            });
+            break;
+          case '0300':
+            notification['warning']({
+              message:Utils.warn300.msg,
+              description:'业务方查询失败!'
+            });
+            break;
+          case '0500':
+            notification['warning']({
+              message:Utils.warn500.msg,
+              description:'业务方查询失败!'
+            });
+            break;
+          default:
+            break;
+        }
+      } catch (error) {
+        notification['error']({
+          message:Utils.error.msg,
+          description:Utils.error.desc
+        });
+      };
+    };
+    async getBUSname(){
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.testDevURL+'monitor/getMonitor',
+          method:'post',
+          data:{
+            pageNum:0,
+            pageSize:0
+          }
+        });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              bussinesNameSelect:dataSource.data
+            });
+            break;
+          case '0300':
+            notification['warning']({
+              message:Utils.warn300.msg,
+              description:'业务号查询失败!'
+            });
+            break;
+          case '0500':
+            notification['warning']({
+              message:Utils.warn500.msg,
+              description:'业务号查询失败!'
+            });
+            break;
+          default:
+            break;
+        }
+      } catch (error) {
+        notification['error']({
+          message:Utils.error.msg,
+          description:Utils.error.desc
+        });
+      };
+    };
+    async getSHOPname(id){
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.testDevURL+'shop/getShopByInstitute',
+          method:'post',
+          data:{institueid:id}
+        });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.setState({
+              merchantNameSelect:dataSource.data
+            });
+            break;
+          case '0300':
+            notification['warning']({
+              message:Utils.warn300.msg,
+              description:'商户查询失败!'
+            });
+            break;
+          case '0500':
+            notification['warning']({
+              message:Utils.warn500.msg,
+              description:'商户查询失败!'
+            });
+            break;
+          default:
+            break;
+        }
+      } catch (error) {
+        notification['error']({
+          message:Utils.error.msg,
+          description:Utils.error.desc
+        });
+      };
+    };
+    /* end */
+
+    /* getDetails */
+    async getRecordDetails(record){
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.testDevURL+'balancelack/getBalancelackDetail',
+          method:'post',
+          data:{
+            balanceTrace:record.balanceTrace
+          }
+        });
+        const {code,dataSource}=res.data;
+        switch (code) {
+          case '0000':
+            this.detailInfo=dataSource;
+            break;
+          case '0300':
+            notification['warning']({
+              message:Utils.warn300.msg,
+              description:Utils.warn300.desc
+            });
+            break;
+          case '0500':
+            notification['warning']({
+              message:Utils.warn500.msg,
+              description:Utils.warn500.desc
+            });
+            break;
+          default:
+            break;
+        };
+      } catch (error) {
+        notification['error']({
+          message:Utils.error.msg,
+          description:Utils.error.desc
         })
       };
     };
-
     /* end */
-
     /* bussiness */
-    async search(){
-      this.setState({
-        searchLoading:true
-      });
-      let self=this;
-      setTimeout(function(){
-        self.setState({
-          searchLoading:false
-        });
-      },2000);
-    };
-    
-    /* selectSearch(value){
-      this.initSelectList(value);
-    }; */
-    selectSearchBUS(value){
-      this.setState({
-        busDefalutOptions:{
-          defalutBUS:value,
-          defalutNAME:'全部',
-          defalutMER:'全部'
-        }
-      });
-      this.initSelectList(value);
-    };
-    selectSearchNAME(value){
-      this.setState({
-        busDefalutOptions:{
-          defalutBUS:this.state.busDefalutOptions.defalutBUS,
-          defalutNAME:value,
-          defalutMER:this.state.busDefalutOptions.defalutMER
-        }
-      });
-      this.initSelectList(value);
-    };
-    selectSearchMER(value){
-      this.setState({
-        busDefalutOptions:{
-          defalutBUS:this.state.busDefalutOptions.defalutBUS,
-          defalutNAME:this.state.busDefalutOptions.defalutNAME,
-          defalutMER:value
-        }
-      });
-      this.initSelectList(value);
-    };
-
     drawerClose(){
       this.setState({
         drawerStatus:{
@@ -352,46 +564,188 @@ export default class REC_rolling_manage extends Component {
         }
       });
     };
-
-    async view(text){
+    createDetailTD(info){
+     const listData=[];
+     if (info.length!==0) {
+        info.forEach(x=>{
+           listData.push(
+             <tr key={x.processId}>
+               <td>{x.procesTime}</td>
+               <td>{x.procesStatus}</td>
+               <td>{x.processMode}</td>
+               <td>{x.userName}</td>
+               <td>{x.remark}</td>
+             </tr>
+           );
+        });
+        return listData;
+     };
+     
+    };
+    async edit(){
+      this.setState({
+        Modal:{
+          ModalVisible:true
+        }
+      });
+    };
+    async ModalSubmit(){
+      console.log(this.detailInfo);
+      console.log(this.state.Modal.dealType)
+      const {Modal}=this.state;
       let res;
       try {
         res=await Utils.axiosRequest({
-          url:Utils.mutilDevURl+'REC_rolling_manage/details',
+          url:Utils.testDevURL+'balanceLackProcess/doBalanceLackProcess',
           method:'post',
-          data:{}
+          data:{
+            balanceTrace:this.detailInfo.data.balanceTrace,
+            processMode:Modal.dealType,
+            systemTrace:this.detailInfo.data.systemTrace,
+            balanceDate:this.detailInfo.data.balanceDate,
+            cardNo:this.detailInfo.data.balanceLine.cardNo,
+            amount:this.detailInfo.data.amount,
+            transDate:this.detailInfo.data.transDate,
+            payTrace:this.detailInfo.data.balanceLine.payTrace,
+            refundCause:Modal.dealReason,
+            remark:Modal.remark,
+            procesStatus:this.detailInfo.data.procesStatus,
+          }
+        });
+        const {code,dataSource,msg}=res.data;
+        switch (code) {
+          case '0000':
+            notification['success']({
+              message:'操作成功!',
+              description:msg
+            });
+            this.gotoThispage(1,10);
+            break;
+          case '0300':
+            notification['warning']({
+              message:Utils.warn300.msg,
+              description:msg
+            });
+            break;
+          case '0500':
+            notification['warning']({
+              message:Utils.warn500.msg,
+              description:msg
+            });
+            break;
+          default:
+            break;
+        }
+      } catch (error) {
+        notification['error']({
+          message:Utils.error.msg,
+          description:Utils.error.desc
+        });
+      };
+    };
+    async ModalCancel(){
+      this.setState({
+        Modal:{
+          ModalVisible:false
+        }
+      });
+    };
+    dealTypeSelect(value){
+      this.setState({
+        Modal:Object.assign({},this.state.Modal,{
+          dealType:/* parseInt(value.key,10) */value.label,
+          dealReason:value.key==='0'?'补数据失败_业务方':null
+        }),
+        refundInputState:value.key==='0'?true:false
+      });
+    };
+    dealTypeReason(value){
+      this.setState({
+        Modal:Object.assign({},this.state.Modal,{
+          dealReason:value.label
+        })
+      });
+    };
+    remarkInput(event){
+      this.setState({
+        Modal:Object.assign({},this.state.Modal,{
+          remark:event.target.value
+        })
+      });
+    };
+    /* end */
+
+
+    /* render table button */
+    renderButton(record){
+      switch (record.procesStatus) {
+        case '待处理':
+          return(
+            <span className={Class.opt_span}>
+              <Button className={Class.search_btn} onClick={this.view.bind(this,record)} type='primary'>查看</Button>
+              <Button className={Class.search_btn} onClick={this.handle.bind(this,record)} type='primary'>处理</Button>
+            </span>
+          )
+        case '处理中':
+          return(
+            <span className={Class.opt_span}>
+              <Button className={Class.search_btn} onClick={this.view.bind(this,record)} type='primary'>查看</Button>
+              <Button className={Class.search_btn} onClick={this.audit.bind(this,record)} type='primary'>审核</Button>
+            </span>
+          )
+        case '已处理':
+          return(
+            <span className={Class.opt_span}>
+              <Button className={Class.search_btn} onClick={this.view.bind(this,record)} type='primary'>查看</Button>
+              <Button className={Class.search_btn} onClick={this.reHandle.bind(this,record)} type='primary'>重新处理</Button>
+            </span>
+          )
+        default:
+          break;
+      };
+    };
+    /* end */
+
+    /* table_btn_event */
+     async view(record){
+      let res;
+      try {
+        res=await Utils.axiosRequest({
+          url:Utils.testDevURL+'balancelack/getBalancelackDetail',
+          method:'post',
+          data:{balanceTrace:record.balanceTrace}
         });
         if (res.data.code==='0000') {
-          const {basicInfo,recInfo,dealInfo}=res.data.dataSource;
+          const {balanceLackProcess}=res.data.dataSource.data;
           this.setState({
             drawerStatus:{
               visible:true
             },
             drawerData:{
               basicInfo:{
-                busName:basicInfo.busName,
-                payPlat:basicInfo.payPlat,
-                busSide:basicInfo.busSide,
-                merName:basicInfo.merName
+                busName:record.bussinessPackName,
+                payPlat:null,
+                busSide:record.instituteName,
+                merName:record.paymentShopName
               },
               recInfo:{
                 return:{
-                    refNum:recInfo.return.refNum,
-                    bill:recInfo.return.bill,
-                    time:recInfo.return.time
+                    refNum:null,
+                    bill:null,
+                    time:null
                 },
                 payPlat:{
-                    refNum:recInfo.payPlat.refNum,
-                    bill:recInfo.payPlat.bill,
-                    time:recInfo.payPlat.time
+                    refNum:null,
+                    bill:null,
+                    time:null
                 },
                 busSide:{
-                    refNum:recInfo.busSide.refNum,
-                    bill:recInfo.busSide.bill,
-                    time:recInfo.busSide.time
+                    refNum:null,
+                    bill:null,
+                    time:null
                 }
               },
-              dealInfo:dealInfo
+              dealInfo:balanceLackProcess
             }
           });
         }else if(res.data.code==='0500'){
@@ -411,105 +765,130 @@ export default class REC_rolling_manage extends Component {
           description:'网络异常!'
         });
       };
-    };
-
-    createDetailTD(info){
-     const listData=[];
-     if (info.length!==0) {
-        info.forEach(x=>{
-           listData.push(
-             <tr key={x.id}>
-               <td>{x.dealTime}</td>
-               <td>{x.status}</td>
-               <td>{x.type}</td>
-               <td>{x.dealer}</td>
-               <td>{x.tips}</td>
-             </tr>
-           );
-        });
-        return listData;
      };
-     
-    };
-
-    async edit(){
+     async handle(record){
+       this.getRecordDetails(record);
+       this.setState({
+        Modal:{
+          ModalVisible:true,
+          dealStatus:'待处理',
+          checkStatus:record.lackStatus,
+          dealType:'退款',
+          dealReason:'补数据失败_业务方',
+          remark:'Return重复缴纳，需做退款处理'
+        },
+        refundInputState:true
+       });
+     };
+     async audit(record){
+      this.getRecordDetails(record);
       this.setState({
         Modal:{
-          ModalVisible:true
-        }
-      });
-    };
-
-    async ModalSubmit(){
-
-    };
-
-<<<<<<< HEAD
-    async gotoThispage(current,pagesize){
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
-        method:'post',
-        data:{
-          page:current,
-          pagesize:pagesize
-=======
-    async ModalCancel(){
+          ModalVisible:true,
+          dealStatus:'处理中',
+          checkStatus:record.lackStatus,
+          dealType:'退款',
+          dealReason:'补数据失败_业务方',
+          remark:'Return重复缴纳，需做退款处理'
+        },
+        refundInputState:true
+       });
+     };
+     async reHandle(record){
+      this.getRecordDetails(record);
       this.setState({
         Modal:{
-          ModalVisible:false
-        }
-      });
-    };
-
-    dealTypeSelect(value){
-      const {ModalVisible,dealStatus,checkStatus,dealReason,remark}=this.state.Modal;
-      this.setState({
-        Modal:{
-          ModalVisible:ModalVisible,
-          dealStatus:dealStatus,
-          checkStatus:checkStatus,
-          dealType:value,
-          dealReason:dealReason,
-          remark:remark
->>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
-        }
-      });
-    };
-
-    dealTypeReason(value){
-      const {ModalVisible,dealStatus,checkStatus,dealType,remark}=this.state.Modal;
-      this.setState({
-        Modal:{
-          ModalVisible:ModalVisible,
-          dealStatus:dealStatus,
-          checkStatus:checkStatus,
-          dealType:dealType,
-          dealReason:value,
-          remark:remark
-        }
-      });
-    };
-
-    remarkInput(value){
-      const {ModalVisible,dealStatus,checkStatus,dealType,dealReason,remark}=this.state.Modal;
-      this.setState({
-        Modal:{
-          ModalVisible:ModalVisible,
-          dealStatus:dealStatus,
-          checkStatus:checkStatus,
-          dealType:dealType,
-          dealReason:dealReason,
-          remark:value
-        }
-      });
-    };
-    
+          ModalVisible:true,
+          dealStatus:'已处理',
+          checkStatus:record.lackStatus,
+          dealType:'退款',
+          dealReason:'补数据失败_业务方',
+          remark:'Return重复缴纳，需做退款处理'
+        },
+        refundInputState:true
+       });
+     };
     /* end */
+
+    /* table query condition */
+    dealWay(value){
+      this.setState({
+        queryCondition:Object.assign({},this.state.queryCondition,{
+          processMode:value.label
+        })
+      });
+    };
+    dealStatus(value){
+      this.setState({
+        queryCondition:Object.assign({},this.state.queryCondition,{
+          procesStatus:value.label
+        })
+      });
+    };
+    getSysRefNum(event){
+      this.setState({
+        queryCondition:Object.assign({},this.state.queryCondition,{
+          systemTrace:event.target.value
+        })
+      });
+    };
+    selectSearchBUS(value){
+      this.setState({
+        queryCondition:Object.assign({},this.state.queryCondition,{
+          instituteId:value.key
+        })
+      });
+      this.getBUSname();
+      this.getSHOPname(value.key);
+    };
+    selectSearchNAME(value){
+      this.setState({
+        queryCondition:Object.assign({},this.state.queryCondition,{
+          bussinessPackId:value.key
+        })
+      });
+      this.getSHOPname();
+    };
+    selectSearchMER(value){
+      this.setState({
+        queryCondition:Object.assign({},this.state.queryCondition,{
+          paymentShop:value.key
+        })
+      });
+    };
+    selectSearchRES(value){
+      this.setState({
+        queryCondition:Object.assign({},this.state.queryCondition,{
+          lackStatus:value.key
+        })
+      });
+    };
+    getTransDate(date,dateString){
+      this.setState({
+        queryCondition:Object.assign({
+          balanceStartDate:dateString[0],
+          balanceEndDate:dateString[1]
+        })
+      });
+    };
+    async search(){
+      this.setState({
+        searchLoading:true
+      });
+      this.gotoThispage(1,10);
+      /* this.setState({
+        searchLoading:false
+      }); */
+    };
+    /* end */
+
+
 
   componentWillMount(){
     this.setTableColumns();
-    this.initSelectList();
+    /* this.initSelectList(); */
     this.toSelectchange(1,10);
+    this.getBUSside();
   };
 
 
@@ -518,41 +897,70 @@ export default class REC_rolling_manage extends Component {
       let pageSize=this.state.queryInfo.pageSize;
       let dataSource=this.state.dataSource.data;
       let self=this;
-      const {bussinesNameSelect,bussinesSideSelect,merchantNameSelect,destroyOnClose}=this.state;
+      const {bussinesNameSelect,bussinesSideSelect,merchantNameSelect,destroyOnClose,pageNum,refundInputState}=this.state;
       const {defalutBUS,defalutNAME,defalutMER}=this.state.busDefalutOptions;
       const {visible}=this.state.drawerStatus;
       const {basicInfo,recInfo,dealInfo}=this.state.drawerData;
       const {ModalVisible,dealStatus,checkStatus,dealType,remark}=this.state.Modal;
+      const {systemTrace,balanceStartDate,balanceEndDate,lackStatus,procesStatus,instituteId,paymentShop,bussinessPackId,processMode}=this.state.queryCondition;
       return(
         <article className={Class.main}>
-        <Modal title="轧差处理" visible={ModalVisible} onOk={self.ModalSubmit} onCancel={self.ModalCancel} okText='提交' cancelText='取消' destroyOnClose={destroyOnClose} closable={false} maskClosable={false} className={Class.ticModal} wrapClassName={Class.optModalTree}>
+        <Modal 
+         title='轧差处理' 
+         visible={ModalVisible} 
+         onOk={this.ModalSubmit} 
+         onCancel={this.ModalCancel} 
+         okText='提交' 
+         cancelText='取消' 
+         destroyOnClose={true} 
+         closable={false} 
+         maskClosable={false} 
+         className={Class.ticModal} 
+         wrapClassName={Class.optModalTree}
+        >
            <article>
              <p>处理状态：{dealStatus}</p>
              <p>对账状态：{checkStatus}</p>
              <div className={Class.modalInput}>
              <label className={Class.generalLabel} htmlFor=''>处理方式：</label>
-             <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={self.dealTypeSelect} defaultValue='退款'>
-                <Option key='refund' value='refund'>退款</Option>
-                <Option key='supDataDep'value='supDataDep'>补数据（机构）</Option>
-                <Option key='supDataRe' value='supDataRe'>补数据（Return）</Option>
-                <Option key='buyer' value='buyer'>挂账</Option>
-                <Option key='revData' value='revData'>冲正数据（Return）</Option>
-                <Option key='offline' value='offline'>线下处理</Option>
+             <Select 
+              className={Class.generaSelect}
+              style={{ width: `10%` }}
+              onChange={this.dealTypeSelect} 
+              defaultValue={{key:'0',label:'退款'}}
+              labelInValue={true}
+             >
+                <Option value='0'>退款</Option>
+                <Option value='1'>补解档</Option>
+                <Option value='3'>补数据</Option>
+                <Option value='4'>挂账</Option>
+                <Option value='2'>删除数据</Option>
+                <Option value='5'>线下处理</Option>
               </Select>
              </div>
-             <div className={Class.modalInput}>
+             <div className={`${Class.modalInput} ${refundInputState===true?Class.show:Class.hide}`}>
              <label className={Class.generalLabel} htmlFor=''>退款原因：</label>
-             <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={self.dealTypeReason} defaultValue='重复缴纳（Return）'>
-                 <Option key='supDataFailed' value='supDataFailed'>补数据失败（业务方）</Option>
-                 <Option key='repeatReturn' value='repeatReturn'>重复缴纳（Return）</Option>
-                 <Option key='repeatOther' value='repeatOther'>重复缴纳（其他渠道）</Option>
-                 <Option key='dataBack' value='dataBack'>数据回退（业务方）</Option>
-                 <Option key='other' value='other'>其他</Option>
+             <Select
+              className={Class.generaSelect}
+              style={{ width: `10%` }}
+              onChange={this.dealTypeReason}
+              defaultValue={{key:'0',label:'补数据失败（业务方）'}}
+              labelInValue={true}
+             >
+                 <Option value='0'>补数据失败_业务方</Option>
+                 <Option value='1'>重复缴纳_return</Option>
+                 <Option value='2'>重复缴纳_其他渠道</Option>
+                 <Option value='3'>数据回退_业务方</Option>
+                 <Option value='4'>其他</Option>
               </Select>
              </div>
              <div className={Class.modalInput}>
                <label className={Class.generalLabel} htmlFor=''>备&emsp;&emsp;注：</label>
-               <TextArea className={Class.generalArea} defaultValue='Return重复缴纳，需做退款处理' onChange={self.remarkInput} />
+               <TextArea 
+                className={Class.generalArea} 
+                defaultValue='Return重复缴纳，需做退款处理' 
+                onChange={this.remarkInput}
+               />
              </div>
            </article>
         </Modal>
@@ -607,7 +1015,7 @@ export default class REC_rolling_manage extends Component {
                         <td className={Class.tdTitle}>处理状态</td>
                         <td className={Class.tdTitle}>处理方式</td>
                         <td className={Class.tdTitle}>处理人</td>
-                        <td className={Class.tdTitle}>处理人</td>
+                        <td className={Class.tdTitle}>备注</td>
                       </tr>
                       {this.createDetailTD(dealInfo)}
                     </tbody>
@@ -617,62 +1025,63 @@ export default class REC_rolling_manage extends Component {
           </Drawer>
            <nav>
              <div className={Class.eachCol}>
-               <label className={Class.generalLabel} htmlFor={Class.opt_staff}>系统参考号</label>
-               <Input className={Class.generalInput} type='text' onChange={this.getSysRefNum} />
-               <label className={Class.generalLabel} htmlFor="">交易日期</label>
-               <RangePicker className={Class.generalInput} onChange={self.onChange} />
+               <label className={Class.generalLabel} htmlFor=''>系统参考号</label>
+               <Input className={Class.generalInput} type='text' onChange={this.getSysRefNum} value={systemTrace} />
+               <label className={Class.generalLabel} htmlFor=''>交易日期</label>
+               <RangePicker className={Class.generalInput} onChange={this.getTransDate} />
                <label className={Class.generalLabel} htmlFor="">处理方式</label>
-               <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={self.selectSearch} defaultValue='全部'>
-                 <Option key='all' value='all'>全部</Option>
-                 <Option key='refund' value='refund'>退款</Option>
-                 <Option key='supBUS' value='sup'>补数据（业务方）</Option>
-                 <Option key='rush' value='rush'>冲正数据（Return）</Option>
-                 <Option key='sup' value='sup'>补数据（Return）</Option>
-                 <Option key='buyer' value='buyer'>挂账</Option>
-                 <Option key='offline' value='offline'>线下处理</Option>
+               <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={this.dealWay} defaultValue={{key:'null'}} labelInValue={true}>
+                 <Option value='null'>全部</Option>
+                 <Option value='0'>退款</Option>
+                 <Option value='1'>补解档</Option>
+                 <Option value='2'>删除数据</Option>
+                 <Option value='3'>补数据（Return）</Option>
+                 <Option value='4'>挂账</Option>
+                 <Option value='5'>线下处理</Option>
                </Select>
                <label className={Class.generalLabel} htmlFor="">处理状态</label>
-               <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={self.selectSearch} defaultValue='全部'>
-                 <Option key='all' value='all'>全部</Option>
-                 <Option key='wait' value='wait'>待处理</Option>
-                 <Option key='dealing'value='dealing'>处理中</Option>
-                 <Option key='finish' value='finish'>已处理</Option>
+               <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={this.dealStatus} defaultValue={{key:'null'}} labelInValue={true}>
+                 <Option value='null'>全部</Option>
+                 <Option value='0'>待处理</Option>
+                 <Option value='1'>处理中</Option>
+                 <Option value='2'>已处理</Option>
                </Select>
                <Button icon='search' className={Class.search_btn} type="Default" loading={this.state.searchLoading} onClick={this.search}>查询</Button>
              </div>
 
              <div className={`${Class.eachCol} ${Class.marginT1}`}>
-              <label className={Class.generalLabel} htmlFor="">业务方</label>
-              <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={self.selectSearchBUS} value={defalutBUS} defaultValue='全部'>
-              {this.createAreaList(bussinesSideSelect)}
+              <label className={Class.generalLabel} htmlFor=''>业务方</label>
+              <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={this.selectSearchBUS} defaultValue={{key:'全部',label:'全部'}} labelInValue={true}>
+              {this.createSelectList(bussinesSideSelect)}
               </Select>
-              <label className={Class.generalLabel} htmlFor="">业务名称</label>
-              <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={self.selectSearchNAME} value={defalutNAME} defaultValue='全部'>
-              {this.createAreaList(bussinesNameSelect)}
+              <label className={Class.generalLabel} htmlFor=''>业务名称</label>
+              <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={this.selectSearchNAME}  defaultValue={{key:'全部',label:'全部'}} labelInValue={true}>
+              {this.createSelectList(bussinesNameSelect)}
               </Select>
-              <label className={Class.generalLabel} htmlFor="">商户名称</label>
-              <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={self.selectSearchMER} value={defalutMER} defaultValue='全部'>
-              {this.createAreaList(merchantNameSelect)}
+              <label className={Class.generalLabel} htmlFor=''>商户名称</label>
+              <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={this.selectSearchMER} defaultValue={{key:'全部',label:'全部'}} labelInValue={true}>
+              {this.createShopList(merchantNameSelect)}
               </Select>
               <label className={Class.generalLabel} htmlFor="">对账结果</label>
-              <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={self.selectSearch} defaultValue='全部'>
-                <Option key='all' value='all'>全部</Option>
-                <Option key='platMore'value='platMore'>支付平台多</Option>
-                <Option key='busMore' value='busMore'>业务方多</Option>
-                <Option key='returnMore' value='returnMore'>Return多</Option>
-                <Option key='platLess' value='platLess'>支付平台少</Option>
-                <Option key='busLess'value='busLess'>业务方少</Option>
-                <Option key='returnLess' value='returnLess'>Return少</Option>
-                <Option key='cashEqual'value='cashEqual'>金额不一致</Option>
+              <Select className={Class.generaSelect} style={{ width: `10%` }} onChange={this.selectSearchRES} defaultValue={{key:'null',label:'全部'}} labelInValue={true}>
+                <Option value='null'>全部</Option>
+                <Option value='0'>支付平台多</Option>
+                <Option value='1'>支付平台少</Option>
+                <Option value='2'>业务方多</Option>
+                <Option value='3'>业务方少</Option>
+                <Option value='4'>Return多</Option>
+                <Option value='5'>Return少</Option>
+                <Option value='6'>金额不一致</Option>
               </Select>
              </div>
 
            </nav>
            <div className={Class.table_main}>
               <Table columns={this.tableColumns}
-                     rowKey='id'
+                     rowKey='balanceTrace'
                      dataSource={dataSource}
                      pagination={{
+                     current:pageNum,
                      total: count,
                      pageSize: pageSize,
                      defaultPageSize:pageSize,
@@ -695,13 +1104,6 @@ export default class REC_rolling_manage extends Component {
     }
 };
 
-/* const mapStateToProps = (state) => ({
-  dataArr:state.rightMenu.dataArr
-});
-
-export default withRouter(connect(
-  mapStateToProps
-)(BUS_open)) */
 
 
 

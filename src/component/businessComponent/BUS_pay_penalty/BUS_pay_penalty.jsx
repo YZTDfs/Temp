@@ -47,90 +47,6 @@ export default class BUS_pay_penalty extends Component {
         this.soCancel=this.soCancel.bind(this);
     };
 
-<<<<<<< HEAD
-    async getAreaList(){
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_announce_manage_city',
-        method:'post',
-        data:{}
-      });
-      if (res.data.code==='0000') {
-         this.setState({
-           areaList:res.data.data
-         });
-      };
-   };
-
-    select(){
-
-    };
-
-    setTableColumns() { 
-      this.tableColumns = [
-          {
-            title: '终端号', 
-            dataIndex: 'terminal_no', 
-            key: 'terminal_no',
-            width:'10%'
-          }, 
-          {
-            title: '广告类型',
-            dataIndex: 'type',
-            key: 'type',
-            width:'8%'
-          }, 
-          {
-            title: '素材名称',
-            dataIndex: 'material',
-            key: 'material',
-            width:'23%'
-          }, 
-          {
-            title: '状态',
-            dataIndex: 'status',
-            key: 'status',
-            width:'10%'
-          },
-          {
-            title:'提交人',
-            dataIndex:'submitter',
-            key:'submitter',
-            width:'10%'
-          },
-          {
-            title:'提交时间',
-            dataIndex:'modify_time',
-            key:'modify_time',
-            width:'11%'
-          },
-          {
-            title:'截止日期',
-            dataIndex:'end_time',
-            key:'end_time',
-            width:'12%'
-          },
-          {
-          title: '操作',
-          key: 'operation',
-          width:'15%',
-          render: (text, record) => (
-          <span className={Class.opt_span}>
-            <Button className={Class.search_btn} type="primary" onClick={this.view}>预览</Button>
-            <Button className={Class.search_btn} type="primary" onClick={this.edit}>编辑</Button>
-            <Button className={Class.search_btn} type="danger" onClick={this.delete}>删除</Button>
-          </span>
-          ),
-      }];
-    };
-    
-    async toSelectchange(page,num) {
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
-        method:'post',
-        data:{
-          page: page,
-      　　pagesize:num
-=======
     getSysRefNum(event){
        this.setState({
           submitData:{
@@ -143,7 +59,6 @@ export default class BUS_pay_penalty extends Component {
       this.setState({
         tipsModal:{
           visible:true
->>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
         }
       });
     };
@@ -193,24 +108,6 @@ export default class BUS_pay_penalty extends Component {
       });
     };
 
-<<<<<<< HEAD
-    async gotoThispage(current,pagesize){
-      let res=await Utils.axiosRequest({
-        url:'http://192.168.20.185:9777/oss/CTX_adv_manage',
-        method:'post',
-        data:{
-          page:current,
-          pagesize:pagesize
-        }
-      });
-      if (res.data.code==='0000') {
-        this.setState({
-          dataSource:{
-            count:res.data.dataSource.count,
-            data:res.data.dataSource.data
-          }
-        })
-=======
     async search(){
       let res;
       try {
@@ -266,7 +163,6 @@ export default class BUS_pay_penalty extends Component {
           message:'接口异常!',
           description:'网络出现问题!',
         });
->>>>>>> ac4ed20d595b7d451147c65317257d5df03e8adb
       };
     };
 

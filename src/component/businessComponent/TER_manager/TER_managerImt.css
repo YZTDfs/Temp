@@ -1,0 +1,8 @@
+@import '~antd/dist/antd.css';
+
+.w75,.ant-drawer-content-wrapper{
+    width: 63%;
+}
+.w75,.ant-drawer-content-wrapper,.ant-drawer-body{
+    height: 88%;
+}

@@ -15,22 +15,26 @@
         margin-top: 1%;
         &>.eachCol{
             height: 26%;
-            &>#opt_staff_lable{
-                margin-right: 1%;
+            &>.generalLabel{
                 margin-left: 1%;
-            }
-            &>#opt_staff{
-                width: 10%;
-                height: 94%;
-            }
-            &>.opt_select_lable{
                 margin-right: 1%;
-                margin-left: 1%;
+                .inlineBlock();
+                min-width: 5%;
             }
-            &>#opt_select{}
+            &>.generaSelect{
+                width: 15% !important;
+            }
+            &>.generalInput{
+                width: 15% !important;
+            }
             &>.add_btn{
                 min-width: 5%;
                 max-width: 7%;
+            }
+            &>.export_btn{
+                margin-left: 1%;
+                min-width: 8%;
+                max-width: 10%;
             }
             &>.tel_edit{
                 min-width: 9%;
@@ -75,3 +79,78 @@
     margin-top: 1%;
     margin-left: 1%;
 }
+/* drawer */
+.drMain{
+    width: 100% !important;
+    height: 100% !important;
+}
+.mainDetails{
+    width: 100%;
+    height: 95%;
+    .flex-center;
+    .flex;
+    .colunm;
+}
+.eachRow{
+  .flex;
+  width: 90%;
+  .standrad();
+  font-size: 1rem;
+  line-height: 2rem;
+  height: 2rem;
+  margin-top: 3%;
+  margin-bottom: 0.3%;
+}
+.tdName{
+    background-color: #f2f2f2;
+    width: 20%;
+}
+.detailsTable{
+   &>table{
+    width: 90%;
+    .standrad();
+    .arround(1px,solid,#f2f2f2);
+    border-collapse: collapse;
+  }
+}
+.detailsTr{
+    &>tr{
+        height: 1.8rem;
+        &>td{
+            .arround(1px,solid,#f2f2f2);
+            text-indent: 0.5em;
+        }
+    }
+}
+/* end */
+/* modal */
+.optModalTree{
+    .flex;
+    /* height: 60%; */
+    align-items: center;
+    justify-content: center;
+}
+.optModal{
+    width: 60% !important;
+    top:0 !important;
+ }
+ .modalMain{
+     width: 90% !important;
+     .standrad;
+     &>.eachCol{
+         margin-bottom: 1.5%;
+         &>.generalLabel{
+             margin-right: 1%;
+             width: 11% ;
+             display: inline-block;
+             margin-left: 1%;
+         }
+         &>.generalInput{
+             width: 20%;
+         }
+         &>.generaSelect{
+             width: 20%;
+         }
+     }
+ }
+/* end */
